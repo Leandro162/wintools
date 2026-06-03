@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="WinTools">
+  <rect width="64" height="64" rx="16" fill="#2563eb"/>
+  <path d="M20 42 42 20" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M22 18 18 22l10 10 4-4L22 18Z" fill="#dbeafe"/>
+  <path d="m36 34 10 10a5 5 0 0 1-7 7L29 41l7-7Z" fill="#dbeafe"/>
+</svg>

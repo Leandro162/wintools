@@ -1,0 +1,300 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const allTools = await getCollection('tools', ({ data }) => !data.draft);
+const searchData = allTools.map(t => ({
+  slug: t.id,
+  title: t.data.title,
+  description: t.data.description,
+  category: t.data.category,
+  coverEmoji: t.data.coverEmoji ?? '🛠',
+  tags: t.data.tags,
+}));
+---
+
+<BaseLayout title="搜索工具 — WinTools" description="搜索 WinTools 全部原创 Windows 小工具">
+
+  <div class="search-hero">
+    <div class="container search-hero-inner">
+      <h1 class="search-heading">搜索工具</h1>
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="输入工具名称或功能描述…"
+          autocomplete="off"
+          autofocus
+        />
+      </div>
+      <div class="suggest-wrap">
+        <span class="suggest-label">试试：</span>
+        <button class="suggest" data-q="改名">改名</button>
+        <button class="suggest" data-q="剪贴板">剪贴板</button>
+        <button class="suggest" data-q="压缩">压缩</button>
+        <button class="suggest" data-q="开机">开机</button>
+        <button class="suggest" data-q="网速">网速</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container results-wrap">
+    <!-- Status bar -->
+    <div class="results-status" id="resultsStatus" hidden>
+      找到 <strong id="resultCount">0</strong> 个与
+      "<em id="queryDisplay"></em>" 相关的工具
+    </div>
+
+    <!-- Results list -->
+    <div class="results-list" id="resultsList"></div>
+
+    <!-- Default state -->
+    <div class="default-state" id="defaultState">
+      <div class="all-title">全部工具 <span>{allTools.length} 款</span></div>
+      <div class="all-grid" id="allGrid">
+        {allTools.map(t => (
+          <a class="mini-card" href={`/tools/${t.id}`}>
+            <span class="mini-emoji">{t.data.coverEmoji ?? '🛠'}</span>
+            <div>
+              <div class="mini-title">{t.data.title.split('—')[0].trim()}</div>
+              <div class="mini-cat">{t.data.category}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- No results -->
+    <div class="no-result" id="noResult" hidden>
+      <div class="no-icon">🔍</div>
+      <p>没有找到匹配的工具</p>
+      <p class="no-hint">换个关键词试试，比如「改名」「压缩」「清理」</p>
+    </div>
+  </div>
+
+</BaseLayout>
+
+<!-- Pass search data to client -->
+<script define:vars={{ searchData }}>
+  // Simple Chinese-friendly search (no external lib needed)
+  const input = document.getElementById('searchInput');
+  const statusBar = document.getElementById('resultsStatus');
+  const countEl = document.getElementById('resultCount');
+  const queryEl = document.getElementById('queryDisplay');
+  const resultsList = document.getElementById('resultsList');
+  const defaultState = document.getElementById('defaultState');
+  const noResult = document.getElementById('noResult');
+
+  function appendHighlightedText(node, text, query) {
+    if (!query) {
+      node.textContent = text;
+      return;
+    }
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matcher = new RegExp(escaped, 'gi');
+    let cursor = 0;
+    for (const match of text.matchAll(matcher)) {
+      if (match.index > cursor) {
+        node.append(document.createTextNode(text.slice(cursor, match.index)));
+      }
+      const mark = document.createElement('mark');
+      mark.textContent = match[0];
+      node.append(mark);
+      cursor = match.index + match[0].length;
+    }
+    if (cursor < text.length) {
+      node.append(document.createTextNode(text.slice(cursor)));
+    }
+  }
+
+  function clearResults() {
+    resultsList.replaceChildren();
+  }
+
+  function renderResults(items, query) {
+    clearResults();
+    items.forEach(item => {
+      const card = document.createElement('a');
+      card.className = 'result-card';
+      card.href = `/tools/${encodeURIComponent(item.slug)}`;
+
+      const thumb = document.createElement('div');
+      thumb.className = 'result-thumb';
+      thumb.textContent = item.coverEmoji;
+
+      const body = document.createElement('div');
+      body.className = 'result-body';
+
+      const category = document.createElement('div');
+      category.className = 'result-cat';
+      category.textContent = item.category;
+
+      const title = document.createElement('div');
+      title.className = 'result-title';
+      appendHighlightedText(title, item.title, query);
+
+      const description = document.createElement('div');
+      description.className = 'result-desc';
+      appendHighlightedText(description, item.description, query);
+
+      body.append(category, title, description);
+      card.append(thumb, body);
+      resultsList.append(card);
+    });
+  }
+
+  function doSearch(query) {
+    const q = query.trim();
+    if (!q) {
+      clearResults();
+      statusBar.hidden = true;
+      defaultState.hidden = false;
+      noResult.hidden = true;
+      return;
+    }
+    const lower = q.toLowerCase();
+    const results = searchData.filter(item =>
+      item.title.toLowerCase().includes(lower) ||
+      item.description.toLowerCase().includes(lower) ||
+      item.category.includes(q) ||
+      item.tags.some(tag => tag.includes(q))
+    );
+    defaultState.hidden = true;
+    statusBar.hidden = false;
+    queryEl.textContent = q;
+    countEl.textContent = String(results.length);
+    if (results.length > 0) {
+      noResult.hidden = true;
+      renderResults(results, q);
+    } else {
+      noResult.hidden = false;
+      clearResults();
+    }
+  }
+
+  // Debounce
+  let timer;
+  input?.addEventListener('input', e => {
+    clearTimeout(timer);
+    timer = setTimeout(() => doSearch(e.target.value), 200);
+  });
+
+  // Suggest tags
+  document.querySelectorAll('.suggest').forEach(btn => {
+    btn.addEventListener('click', () => {
+      input.value = btn.dataset.q;
+      doSearch(btn.dataset.q);
+      input.focus();
+    });
+  });
+
+  // URL query param support: /search?q=改名
+  const urlQ = new URLSearchParams(location.search).get('q');
+  if (urlQ) { input.value = urlQ; doSearch(urlQ); }
+</script>
+
+<style>
+  .search-hero {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 36px 0;
+  }
+  .search-hero-inner { max-width: 640px; margin: 0 auto; }
+  .search-heading {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 700; margin-bottom: 16px;
+  }
+  .search-box {
+    display: flex; align-items: center; gap: 0;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-box:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+  .search-box svg { margin: 0 14px; color: var(--text3); flex-shrink: 0; }
+  #searchInput {
+    flex: 1; height: 50px; border: none; outline: none;
+    font-family: var(--font-body); font-size: 15px; color: var(--text);
+    background: transparent;
+  }
+  #searchInput::placeholder { color: var(--text3); }
+  .suggest-wrap {
+    margin-top: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .suggest-label { font-size: 12px; color: var(--text3); }
+  .suggest {
+    font-size: 12px; color: var(--text2);
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 4px 12px; border-radius: 9999px; cursor: pointer;
+    font-family: var(--font-body); transition: all 0.15s;
+  }
+  .suggest:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+  .results-wrap { padding: 28px 0 72px; max-width: 760px; }
+  .results-status {
+    font-size: 14px; color: var(--text2); margin-bottom: 18px;
+  }
+  .results-status strong { color: var(--text); }
+  .results-status em { font-style: normal; color: var(--blue); font-weight: 600; }
+  :global(.result-card) {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px;
+    text-decoration: none; color: inherit;
+    transition: box-shadow 0.2s, transform 0.2s;
+    box-shadow: var(--shadow-sm); margin-bottom: 12px;
+  }
+  :global(.result-card:hover) {
+    box-shadow: var(--shadow-md); transform: translateY(-2px);
+  }
+  :global(.result-thumb) {
+    width: 52px; height: 52px; border-radius: 10px;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  :global(.result-cat) {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--blue); margin-bottom: 4px;
+  }
+  :global(.result-title) {
+    font-family: var(--font-display);
+    font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px;
+  }
+  :global(.result-desc) { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  :global(mark) {
+    background: #FEF9C3; color: #713F12;
+    border-radius: 3px; padding: 0 2px; font-style: normal;
+  }
+  .default-state { margin-top: 8px; }
+  .all-title {
+    font-family: var(--font-display);
+    font-size: 15px; font-weight: 600; margin-bottom: 16px;
+  }
+  .all-title span { color: var(--text3); font-weight: 400; font-size: 13px; margin-left: 6px; }
+  .all-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .mini-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; border-radius: 10px;
+    background: var(--bg2); border: 1px solid var(--border);
+    text-decoration: none; color: inherit;
+    transition: all 0.15s;
+  }
+  .mini-card:hover { background: var(--blue-light); border-color: var(--blue); }
+  .mini-emoji { font-size: 22px; flex-shrink: 0; }
+  .mini-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .mini-cat { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .no-result { text-align: center; padding: 60px 0; }
+  .no-icon { font-size: 44px; margin-bottom: 14px; }
+  .no-result p { font-size: 15px; color: var(--text3); margin-bottom: 6px; }
+  .no-hint { font-size: 13px !important; }
+</style>

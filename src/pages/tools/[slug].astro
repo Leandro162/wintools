@@ -1,0 +1,299 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DownloadCard from '../../components/DownloadCard.astro';
+
+export async function getStaticPaths() {
+  const tools = await getCollection('tools', ({ data }) => !data.draft);
+  return tools.map(tool => ({ params: { slug: tool.id } }));
+}
+
+const { slug } = Astro.params;
+const tool = await getEntry('tools', slug!);
+if (!tool) return Astro.redirect('/404');
+
+const { Content } = await render(tool);
+const { title, description, category, version, fileSize, compatibility,
+        publishDate, updatedDate, coverEmoji, downloadLinks, tags } = tool.data;
+
+const dateStr = publishDate.toLocaleDateString('zh-CN', {
+  year:'numeric', month:'long', day:'numeric'
+});
+
+// Related tools (same category, exclude self)
+const allTools = await getCollection('tools', ({ data }) => !data.draft);
+const related = allTools
+  .filter(t => t.id !== slug && t.data.category === category)
+  .slice(0, 3);
+const siteUrl = Astro.site?.origin ?? 'https://wintools.site';
+const canonicalUrl = new URL(`/tools/${slug}`, siteUrl).href;
+---
+
+<BaseLayout
+  title={`${title} — 使用教程及下载 | WinTools`}
+  description={description}
+  canonicalUrl={canonicalUrl}
+>
+
+  <div class="page-wrap container">
+
+    <!-- ARTICLE -->
+    <article class="article">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="面包屑导航">
+        <a href="/">首页</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <a href={`/category/${encodeURIComponent(category)}`}>{category}</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <span>{title.split('—')[0].trim()}</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="article-cat">{category}</div>
+      <h1 class="article-title">{title}</h1>
+      <div class="article-meta">
+        <span class="meta-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          {dateStr}
+        </span>
+        <span class="meta-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          {version}
+        </span>
+        {tags.map(tag => (
+          <span class="meta-tag">{tag}</span>
+        ))}
+      </div>
+
+      <!-- Cover -->
+      <div class="article-cover" aria-hidden="true">
+        <span class="cover-big-emoji">{coverEmoji ?? '🛠'}</span>
+      </div>
+
+      <!-- Body -->
+      <div class="prose">
+        <Content />
+      </div>
+
+      <!-- Download card -->
+      <DownloadCard
+        version={version}
+        fileSize={fileSize}
+        compatibility={compatibility}
+        updatedDate={updatedDate ?? publishDate}
+        links={downloadLinks}
+      />
+
+      <!-- JSON-LD structured data -->
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": title,
+        "description": description,
+        "datePublished": publishDate.toISOString(),
+        "dateModified": (updatedDate ?? publishDate).toISOString(),
+        "author": { "@type": "Person", "name": "WinTools" },
+        "publisher": { "@type": "Organization", "name": "WinTools", "url": siteUrl },
+      })} />
+
+    </article>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- TOC (JS-generated) -->
+      <div class="widget" id="tocWidget">
+        <div class="widget-title">本文目录</div>
+        <nav class="toc-list" id="tocList" aria-label="文章目录"></nav>
+      </div>
+
+      <!-- Tool info -->
+      <div class="widget">
+        <div class="widget-title">工具信息</div>
+        <ul class="info-list">
+          <li><span class="info-key">当前版本</span><span class="info-val">{version}</span></li>
+          <li><span class="info-key">文件大小</span><span class="info-val">{fileSize}</span></li>
+          <li><span class="info-key">兼容系统</span><span class="info-val">{compatibility}</span></li>
+          <li><span class="info-key">是否免费</span><span class="info-val green">✓ 永久免费</span></li>
+          <li><span class="info-key">是否联网</span><span class="info-val green">✓ 完全离线</span></li>
+        </ul>
+      </div>
+
+      <!-- Related tools -->
+      {related.length > 0 && (
+        <div class="widget">
+          <div class="widget-title">相关工具</div>
+          <ul class="related-list">
+            {related.map(t => (
+              <li>
+                <a href={`/tools/${t.id}`}>
+                  <span class="related-emoji">{t.data.coverEmoji ?? '🛠'}</span>
+                  <span>{t.data.title.split('—')[0].trim()}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <!-- Download shortcut -->
+      <a class="dl-shortcut" href="#download">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        跳转到下载区域
+      </a>
+
+    </aside>
+
+  </div>
+
+</BaseLayout>
+
+<style>
+  .page-wrap {
+    display: grid;
+    grid-template-columns: 1fr 256px;
+    gap: 48px;
+    padding-top: 36px;
+    padding-bottom: 72px;
+    align-items: start;
+  }
+
+  /* ARTICLE */
+  .article { min-width: 0; }
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text3); margin-bottom: 20px;
+  }
+  .breadcrumb a { color: var(--text3); text-decoration: none; transition: color 0.15s; }
+  .breadcrumb a:hover { color: var(--blue); }
+  .article-cat {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--blue); margin-bottom: 10px;
+  }
+  .article-title {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 700; line-height: 1.3;
+    letter-spacing: -0.01em; margin-bottom: 14px;
+  }
+  .article-meta {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .meta-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 13px; color: var(--text3);
+  }
+  .meta-tag {
+    background: var(--bg3); color: var(--text2);
+    font-size: 12px; font-weight: 500;
+    padding: 3px 10px; border-radius: 9999px;
+  }
+  .article-cover {
+    width: 100%; aspect-ratio: 16/9;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 32px;
+  }
+  .cover-big-emoji { font-size: 72px; }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: sticky; top: calc(var(--nav-h) + 16px);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .widget {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .widget-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text3);
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .toc-list { padding: 8px 0; }
+  .toc-list :global(a) {
+    display: block; padding: 5px 14px;
+    font-size: 13px; color: var(--text2); text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .toc-list :global(a:hover) { color: var(--blue); background: var(--blue-light); }
+  .toc-list :global(a.active) {
+    color: var(--blue); font-weight: 600;
+    border-left-color: var(--blue); background: var(--blue-light);
+  }
+  .toc-list :global(a.sub) { padding-left: 26px; font-size: 12px; }
+  .info-list { list-style: none; }
+  .info-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 14px; font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-key { color: var(--text3); }
+  .info-val { color: var(--text); font-weight: 500; }
+  .info-val.green { color: var(--green); }
+  .related-list { list-style: none; padding: 6px 0; }
+  .related-list li a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; text-decoration: none;
+    font-size: 13px; color: var(--text2);
+    transition: background 0.15s;
+  }
+  .related-list li a:hover { background: var(--bg2); color: var(--blue); }
+  .related-emoji { font-size: 18px; flex-shrink: 0; }
+  .dl-shortcut {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px; border-radius: var(--radius);
+    background: var(--green); color: #fff;
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: background 0.15s;
+  }
+  .dl-shortcut:hover { background: #15803D; }
+
+  @media (max-width: 860px) {
+    .page-wrap { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+</style>
+
+<script>
+  // Auto-generate TOC from article headings
+  const headings = document.querySelectorAll<HTMLHeadingElement>('.prose h2, .prose h3');
+  const tocList = document.getElementById('tocList');
+  const tocWidget = document.getElementById('tocWidget');
+
+  if (headings.length > 0 && tocList) {
+    headings.forEach((h, i) => {
+      if (!h.id) h.id = `heading-${i}`;
+      const a = document.createElement('a');
+      a.href = `#${h.id}`;
+      a.textContent = h.textContent ?? '';
+      if (h.tagName === 'H3') a.classList.add('sub');
+      tocList.appendChild(a);
+    });
+
+    // Scroll spy
+    const links = tocList.querySelectorAll<HTMLAnchorElement>('a');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const active = tocList.querySelector<HTMLAnchorElement>(`a[href="#${entry.target.id}"]`);
+          active?.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-60px 0px -70% 0px' });
+    headings.forEach(h => observer.observe(h));
+  } else if (tocWidget) {
+    tocWidget.hidden = true;
+  }
+</script>

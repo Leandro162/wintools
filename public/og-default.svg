@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f8fafc"/>
+  <rect x="80" y="80" width="1040" height="470" rx="36" fill="#ffffff" stroke="#dbeafe" stroke-width="4"/>
+  <circle cx="190" cy="195" r="54" fill="#2563eb"/>
+  <path d="M165 218 213 170" stroke="#fff" stroke-width="13" stroke-linecap="round"/>
+  <path d="m169 164-12 12 22 22 12-12-22-22Z" fill="#dbeafe"/>
+  <text x="270" y="205" fill="#111827" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="58" font-weight="700">WinTools</text>
+  <text x="270" y="275" fill="#4b5563" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="31">原创 Windows 实用小工具免费下载</text>
+  <text x="120" y="430" fill="#2563eb" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="36" font-weight="700">免费分享 · 图文教程 · 开箱即用</text>
+</svg>

@@ -1,0 +1,226 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+}
+
+const {
+  title,
+  description = '原创 Windows 实用小工具，免费分享，附图文教程，开箱即用。',
+  ogImage = '/og-default.svg',
+  canonicalUrl,
+} = Astro.props;
+
+const siteUrl = Astro.site?.origin ?? 'https://wintools.site';
+const canonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).href;
+const currentPath = Astro.url.pathname;
+const ogImageUrl = new URL(ogImage, siteUrl).href;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="generator" content={Astro.generator} />
+
+  <!-- SEO -->
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={ogImageUrl} />
+  <meta property="og:site_name" content="WinTools" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Sora:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="WinTools" href="/rss.xml" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="container nav-inner">
+      <a class="logo" href="/">
+        <div class="logo-icon" aria-hidden="true">🛠</div>
+        WinTools
+      </a>
+      <div class="nav-links">
+        <a href="/" class:list={[{ active: currentPath === '/' }]}>首页</a>
+        <a href="/category" class:list={[{ active: currentPath.startsWith('/category') }]}>分类</a>
+        <a href="/about" class:list={[{ active: currentPath === '/about' }]}>关于</a>
+      </div>
+      <a class="nav-search" href="/search" aria-label="搜索">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <span>搜索工具…</span>
+      </a>
+      <!-- Mobile hamburger -->
+      <button class="hamburger" id="hamburger" aria-label="菜单" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <!-- Mobile menu -->
+    <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+      <a href="/">首页</a>
+      <a href="/category">分类</a>
+      <a href="/about">关于</a>
+      <a href="/search">搜索</a>
+    </div>
+  </nav>
+
+  <!-- PAGE CONTENT -->
+  <main>
+    <slot />
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">🛠 WinTools</div>
+        <div class="footer-tagline">原创 Windows 小工具，持续免费更新</div>
+      </div>
+      <div class="footer-links">
+        <a href="/">首页</a>
+        <a href="/category">分类</a>
+        <a href="/about">关于</a>
+        <a href="/rss.xml">RSS</a>
+      </div>
+      <div class="footer-copy">© {new Date().getFullYear()} WinTools · 免费分享，禁止倒卖</div>
+    </div>
+  </footer>
+
+</body>
+</html>
+
+<style>
+  /* NAV */
+  #navbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    height: var(--nav-h);
+  }
+  .nav-inner {
+    display: flex; align-items: center;
+    height: var(--nav-h); gap: 0;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 8px;
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 17px; color: var(--text);
+    margin-right: auto;
+  }
+  .logo-icon {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, #2563EB, #60A5FA);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .nav-links { display: flex; align-items: center; gap: 2px; }
+  .nav-links a {
+    text-decoration: none; color: var(--text2);
+    font-size: 14px; font-weight: 500;
+    padding: 6px 14px; border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-links a:hover { background: var(--bg2); color: var(--text); }
+  .nav-links a.active { color: var(--blue); background: var(--blue-light); }
+  .nav-search {
+    margin-left: 12px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px;
+    cursor: pointer; transition: border-color 0.15s;
+    min-width: 160px; text-decoration: none;
+    color: var(--text3); font-size: 13px;
+  }
+  .nav-search:hover { border-color: #CBD5E1; }
+  /* Hamburger */
+  .hamburger {
+    display: none; flex-direction: column; justify-content: center;
+    gap: 5px; background: none; border: none; cursor: pointer;
+    padding: 6px; margin-left: 12px;
+  }
+  .hamburger span {
+    display: block; width: 20px; height: 2px;
+    background: var(--text2); border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .mobile-menu {
+    display: none; flex-direction: column;
+    background: var(--bg); border-top: 1px solid var(--border);
+    padding: 8px 16px 16px;
+  }
+  .mobile-menu a {
+    padding: 12px 8px; font-size: 15px; font-weight: 500;
+    color: var(--text); text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .mobile-menu a:last-child { border-bottom: none; }
+  @media (max-width: 680px) {
+    .nav-links, .nav-search { display: none; }
+    .hamburger { display: flex; }
+    #navbar { height: auto; }
+    .nav-inner { height: var(--nav-h); }
+    .mobile-menu.open { display: flex; }
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 32px 24px;
+    margin-top: auto;
+  }
+  .footer-inner {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .footer-logo { font-size: 15px; font-weight: 700; color: var(--text); }
+  .footer-tagline { font-size: 12px; color: var(--text3); margin-top: 3px; }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a {
+    font-size: 13px; color: var(--text3);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .footer-links a:hover { color: var(--blue); }
+  .footer-copy { font-size: 12px; color: var(--text3); }
+</style>
+
+<script>
+  // Mobile menu toggle
+  const btn = document.getElementById('hamburger');
+  const menu = document.getElementById('mobileMenu');
+  btn?.addEventListener('click', () => {
+    const open = menu?.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(open));
+    menu?.setAttribute('aria-hidden', String(!open));
+  });
+</script>

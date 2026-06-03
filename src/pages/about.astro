@@ -1,0 +1,194 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allTools = await getCollection('tools', ({ data }) => !data.draft);
+---
+
+<BaseLayout
+  title="关于本站 — WinTools"
+  description="WinTools 是一个原创 Windows 小工具分享站，所有工具均为作者自研，免费分享，附图文教程。"
+>
+
+  <!-- HERO -->
+  <div class="about-hero">
+    <div class="container about-hero-inner">
+      <div class="avatar">🛠</div>
+      <h1>关于 WinTools</h1>
+      <p>一个人做的原创 Windows 小工具分享站。每款工具都是为了解决我自己遇到的实际问题，做好了就分享出来，希望也能帮到你。</p>
+      <div class="hero-tags">
+        <span class="htag blue">🆓 永久免费</span>
+        <span class="htag green">✅ 全部原创</span>
+        <span class="htag gray">🔒 无广告追踪</span>
+        <span class="htag gray">📶 工具完全离线</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container about-content">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <span class="sn">{allTools.length}</span>
+        <span class="sl">款原创工具</span>
+      </div>
+      <div class="stat-box">
+        <span class="sn">2024</span>
+        <span class="sl">开始做的年份</span>
+      </div>
+      <div class="stat-box">
+        <span class="sn">0</span>
+        <span class="sl">广告 / 捆绑</span>
+      </div>
+    </div>
+
+    <!-- WHY -->
+    <section class="about-section">
+      <h2>🤔 为什么做这个站</h2>
+      <p>每次遇到重复性的电脑操作，我都会找找有没有现成工具。但要么找到的是带广告的捆绑软件，要么是英文界面看不懂，要么下载下来发现根本不能用。</p>
+      <p>后来我干脆自己写，写完发现其实很多人都有一样的需求，就开了这个站分享出来。<strong>每款工具都是我自己实际用过、觉得好用才发布的。</strong></p>
+    </section>
+
+    <!-- PRINCIPLES -->
+    <section class="about-section">
+      <h2>⚡ 工具的几个原则</h2>
+      <div class="principles">
+        <div class="p-card">
+          <div class="p-icon">🚀</div>
+          <div class="p-title">开箱即用</div>
+          <div class="p-desc">所有工具都是免安装的 .exe，下载双击就能用，不需要装任何依赖。</div>
+        </div>
+        <div class="p-card">
+          <div class="p-icon">🔒</div>
+          <div class="p-title">不联网、不收集数据</div>
+          <div class="p-desc">工具运行完全在本地，不访问网络，不上报任何使用数据，你的文件只在你的电脑上。</div>
+        </div>
+        <div class="p-card">
+          <div class="p-icon">🧹</div>
+          <div class="p-title">干净无广告</div>
+          <div class="p-desc">没有捆绑安装、没有弹窗广告，下载的只有工具本身。</div>
+        </div>
+        <div class="p-card">
+          <div class="p-icon">📖</div>
+          <div class="p-title">有教程有说明</div>
+          <div class="p-desc">每款工具都有图文使用教程，不懂电脑也能照着做，遇到问题可以在评论区问。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="about-section">
+      <h2>📬 联系我</h2>
+      <p>有问题、发现 Bug 或者想要某个功能，最快的方式是在对应工具文章下方的<strong>评论区留言</strong>，我每天都会看。</p>
+      <div class="contact-grid">
+        <a class="contact-card" href="mailto:hello@wintools.site">
+          <span class="cc-icon">📧</span>
+          <div><div class="cc-type">邮箱</div><div class="cc-val">hello@wintools.site</div></div>
+        </a>
+        <a class="contact-card" href="/rss.xml">
+          <span class="cc-icon">📡</span>
+          <div><div class="cc-type">RSS 订阅</div><div class="cc-val">订阅更新通知</div></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- DISCLAIMER -->
+    <section class="about-section">
+      <h2>⚠️ 免责声明</h2>
+      <div class="disclaimer">
+        <p>本站所有工具均为作者原创开发，<strong>免费提供给个人用户使用，禁止商业用途及二次倒卖。</strong></p>
+        <p>工具在发布前已在 Windows 10/11 环境下测试，但不同电脑环境存在差异，建议先在非重要文件上试用。<strong>对因使用本站工具造成的数据损失，作者不承担责任。</strong></p>
+        <p>下载链接托管于百度网盘等平台，如遇链接失效，请在评论区告知，通常 24 小时内更新。</p>
+      </div>
+    </section>
+
+  </div>
+</BaseLayout>
+
+<style>
+  .about-hero {
+    background: linear-gradient(160deg,#F0F6FF 0%,#ffffff 65%);
+    border-bottom: 1px solid var(--border);
+    padding: 52px 0 44px; text-align: center;
+  }
+  .about-hero-inner { max-width: 560px; margin: 0 auto; }
+  .avatar {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: linear-gradient(135deg,#2563EB,#60A5FA);
+    margin: 0 auto 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px;
+    box-shadow: 0 4px 20px rgba(37,99,235,0.22);
+  }
+  .about-hero h1 {
+    font-family: var(--font-display);
+    font-size: 26px; font-weight: 700; margin-bottom: 10px;
+  }
+  .about-hero p { font-size: 15px; color: var(--text2); line-height: 1.75; margin-bottom: 22px; }
+  .hero-tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .htag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 14px; border-radius: 9999px;
+    font-size: 13px; font-weight: 500;
+  }
+  .htag.blue { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-mid); }
+  .htag.green { background: var(--green-light); color: var(--green); border: 1px solid var(--green-mid); }
+  .htag.gray { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .about-content { max-width: 760px; padding: 48px 24px 72px; }
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 14px; margin-bottom: 48px;
+  }
+  .stat-box {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; text-align: center;
+  }
+  .sn {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 28px; font-weight: 700; color: var(--text);
+  }
+  .sl { font-size: 13px; color: var(--text3); margin-top: 4px; display: block; }
+  .about-section { margin-bottom: 44px; }
+  .about-section h2 {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 600; margin-bottom: 14px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--border);
+  }
+  .about-section p { font-size: 15px; color: var(--text2); line-height: 1.8; margin-bottom: 12px; }
+  .about-section p strong { color: var(--text); }
+  .principles {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .p-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .p-icon { font-size: 22px; margin-bottom: 8px; }
+  .p-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+  .p-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .contact-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 10px;
+    text-decoration: none; color: var(--text); transition: all 0.15s;
+  }
+  .contact-card:hover { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+  .cc-icon { font-size: 22px; flex-shrink: 0; }
+  .cc-type { font-size: 12px; color: var(--text3); margin-bottom: 2px; }
+  .cc-val { font-size: 13px; font-weight: 600; }
+  .disclaimer {
+    background: #FFFBEB; border: 1px solid #FDE68A;
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .disclaimer p { font-size: 13px; color: #92400E; line-height: 1.7; margin-bottom: 8px; }
+  .disclaimer p:last-child { margin-bottom: 0; }
+  .disclaimer strong { color: #78350F; }
+  @media (max-width: 560px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .principles { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+  }
+</style>

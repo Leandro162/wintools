@@ -1,0 +1,180 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ToolCard from '../../components/ToolCard.astro';
+
+export async function getStaticPaths() {
+  const categories = ['文件处理', '系统优化', '效率工具', '网络工具', '其他'];
+  return categories.map(cat => ({ params: { category: cat } }));
+}
+
+const category = Astro.params.category!;
+
+const allTools = await getCollection('tools', ({ data }) => !data.draft);
+const tools = allTools
+  .filter(t => t.data.category === category)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+
+const categories = ['文件处理', '系统优化', '效率工具', '网络工具', '其他'];
+const allCounts = Object.fromEntries(
+  categories.map(c => [c, allTools.filter(t => t.data.category === c).length])
+);
+
+const catEmoji: Record<string, string> = {
+  '文件处理': '📁', '系统优化': '⚙️', '效率工具': '⚡', '网络工具': '🌐', '其他': '🎨'
+};
+const catDesc: Record<string, string> = {
+  '文件处理': '批量改名、格式转换、压缩合并——让文件管理不再费时费力。',
+  '系统优化': '清理启动项、释放内存、加速开机——让 Windows 跑得更利索。',
+  '效率工具': '剪贴板、快捷启动、自动化——减少重复操作，把时间省下来。',
+  '网络工具': '网速监测、连接管理——让网络状态一目了然。',
+  '其他': '不好归类但很实用的各种小工具。',
+};
+---
+
+<BaseLayout
+  title={`${category} 工具 — WinTools`}
+  description={catDesc[category]}
+>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container page-header-inner">
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href="/">首页</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <a href="/category">分类</a>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <span>{category}</span>
+      </nav>
+      <div class="cat-hero">
+        <div class="cat-icon">{catEmoji[category]}</div>
+        <div>
+          <h1 class="cat-title">{category}</h1>
+          <p class="cat-desc">{catDesc[category]}</p>
+          <span class="cat-count">共 {tools.length} 款工具</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORY TABS -->
+  <div class="cat-tabs-wrap">
+    <div class="container cat-tabs">
+      <a class="cat-tab" href="/">全部 <span class="cnt">{allTools.length}</span></a>
+      {categories.map(c => (
+        <a
+          class:list={['cat-tab', { active: c === category }]}
+          href={`/category/${c}`}
+        >
+          {catEmoji[c]} {c} <span class="cnt">{allCounts[c]}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <section class="tools-section container">
+    {tools.length > 0 ? (
+      <div class="tools-grid">
+        {tools.map((tool, i) => (
+          <ToolCard
+            slug={tool.id}
+            title={tool.data.title}
+            description={tool.data.description}
+            category={tool.data.category}
+            coverEmoji={tool.data.coverEmoji}
+            publishDate={tool.data.publishDate}
+            class={`fade-in-${Math.min(i + 1, 6)}`}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="empty-state">
+        <div class="empty-icon">🔧</div>
+        <p>该分类暂无工具，正在开发中，敬请期待！</p>
+        <a href="/" class="back-btn">← 返回首页</a>
+      </div>
+    )}
+  </section>
+
+</BaseLayout>
+
+<style>
+  .page-header {
+    background: linear-gradient(160deg,#F0F6FF 0%,#ffffff 70%);
+    border-bottom: 1px solid var(--border);
+    padding: 36px 0 28px;
+  }
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text3); margin-bottom: 18px;
+  }
+  .breadcrumb a { color: var(--text3); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--blue); }
+  .cat-hero { display: flex; align-items: center; gap: 18px; }
+  .cat-icon {
+    width: 60px; height: 60px; font-size: 30px;
+    border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg,#EFF6FF,#DBEAFE);
+    border: 1px solid var(--blue-mid);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cat-title {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 700; margin-bottom: 5px;
+  }
+  .cat-desc { font-size: 14px; color: var(--text2); max-width: 440px; }
+  .cat-count {
+    display: inline-flex; margin-top: 8px;
+    background: var(--blue-light); color: var(--blue);
+    border: 1px solid var(--blue-mid);
+    font-size: 12px; font-weight: 600;
+    padding: 3px 10px; border-radius: 9999px;
+  }
+  .cat-tabs-wrap {
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: var(--nav-h); z-index: 50;
+    background: var(--bg);
+  }
+  .cat-tabs {
+    display: flex; gap: 0;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    display: flex; align-items: center; gap: 6px;
+    padding: 13px 16px; font-size: 14px; font-weight: 500;
+    color: var(--text2); text-decoration: none; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .cat-tab:hover { color: var(--text); }
+  .cat-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .cat-tab .cnt {
+    font-size: 11px; background: var(--bg3); color: var(--text3);
+    padding: 1px 6px; border-radius: 9999px;
+  }
+  .cat-tab.active .cnt { background: var(--blue-light); color: var(--blue); }
+  .tools-section { padding: 28px 0 72px; }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .empty-state {
+    text-align: center; padding: 80px 0;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 14px; }
+  .empty-state p { font-size: 15px; margin-bottom: 20px; }
+  .back-btn {
+    display: inline-flex; padding: 10px 20px;
+    border-radius: 8px; background: var(--blue-light);
+    color: var(--blue); font-weight: 600; font-size: 14px;
+    text-decoration: none;
+  }
+  @media (max-width: 600px) {
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+</style>

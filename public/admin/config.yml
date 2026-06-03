@@ -1,0 +1,155 @@
+# Decap CMS 配置文件
+# 文档：https://decapcms.org/docs/
+
+backend:
+  name: github                          # 通过 GitHub 登录，文章存储在仓库里
+  repo: Leandro162/wintools
+  branch: main
+  commit_messages:
+    create: '✨ 新文章：{{slug}}'
+    update: '📝 更新文章：{{slug}}'
+    delete: '🗑 删除文章：{{slug}}'
+
+# 图片上传目录
+media_folder: public/images
+public_folder: /images
+
+# 本地开发时使用（不需要 GitHub 认证）
+# local_backend: true
+
+# 语言设置
+locale: zh_Hans
+
+collections:
+  - name: tools
+    label: 工具文章
+    label_singular: 工具
+    folder: src/content/tools
+    create: true
+    slug: "{{slug}}"                    # 文件名 = URL，自动用标题生成，建议手动填英文
+    preview_path: "/tools/{{slug}}"
+    editor:
+      preview: false                    # 关闭实时预览（内容较长时更流畅）
+    fields:
+
+      # ── 基本信息 ──
+      - label: "文章标题"
+        name: title
+        widget: string
+        hint: "格式建议：工具名 — 一句话描述。例：文件批量改名工具 — 一次改几百个文件名"
+
+      - label: "简短描述"
+        name: description
+        widget: string
+        hint: "显示在卡片和搜索结果里，60字以内，口语化，包含关键词"
+
+      - label: "URL 别名（slug）"
+        name: slug
+        widget: string
+        required: false
+        hint: "不填则自动生成。建议手动填英文，如：file-renamer（一旦发布不要修改！）"
+
+      - label: "分类"
+        name: category
+        widget: select
+        options:
+          - { label: "📁 文件处理", value: "文件处理" }
+          - { label: "⚙️ 系统优化", value: "系统优化" }
+          - { label: "⚡ 效率工具", value: "效率工具" }
+          - { label: "🌐 网络工具", value: "网络工具" }
+          - { label: "🎨 其他",     value: "其他" }
+
+      - label: "封面 Emoji"
+        name: coverEmoji
+        widget: string
+        default: "🛠"
+        hint: "用一个 Emoji 代表这个工具，如 📂 ⚙️ 🖥 等"
+
+      - label: "精选文章"
+        name: featured
+        widget: boolean
+        default: false
+        hint: "开启后在首页显示为大卡片，每次只设一篇"
+
+      - label: "草稿"
+        name: draft
+        widget: boolean
+        default: false
+        hint: "勾选后文章不会发布到网站"
+
+      # ── 版本信息 ──
+      - label: "当前版本"
+        name: version
+        widget: string
+        default: "v1.0.0"
+        hint: "如 v1.2.3"
+
+      - label: "文件大小"
+        name: fileSize
+        widget: string
+        default: "约 2 MB"
+        hint: "如：约 2.1 MB"
+
+      - label: "兼容系统"
+        name: compatibility
+        widget: string
+        default: "Windows 10 / 11（64位）"
+
+      - label: "发布日期"
+        name: publishDate
+        widget: datetime
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        default: ""
+
+      - label: "最后更新日期"
+        name: updatedDate
+        widget: datetime
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        required: false
+
+      # ── 下载链接（支持多个） ──
+      - label: "下载链接"
+        name: downloadLinks
+        widget: list
+        min: 1
+        label_singular: 下载链接
+        fields:
+          - label: "网盘名称"
+            name: name
+            widget: string
+            hint: "如：百度网盘、夸克网盘、阿里云盘"
+          - label: "下载 URL"
+            name: url
+            widget: string
+            hint: "完整链接，如 https://pan.baidu.com/s/xxxxx"
+          - label: "提取码"
+            name: extractCode
+            widget: string
+            required: false
+            hint: "如果网盘需要提取码就填，否则留空"
+
+      # ── 标签 ──
+      - label: "标签"
+        name: tags
+        widget: list
+        default: []
+        hint: "最多 3 个，如：免安装、批量处理、文件管理"
+
+      # ── 正文 ──
+      - label: "文章正文"
+        name: body
+        widget: markdown
+        hint: "教程内容写在这里。支持标题、列表、图片、代码块等 Markdown 格式。"
+        buttons:
+          - bold
+          - italic
+          - code
+          - link
+          - heading-one
+          - heading-two
+          - heading-three
+          - bulleted-list
+          - numbered-list
+          - image

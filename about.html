@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关于本站 — WinTools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#ffffff; --bg2:#F7F8FA; --bg3:#F0F2F5;
+    --border:#E5E7EB;
+    --text:#111827; --text2:#4B5563; --text3:#9CA3AF;
+    --blue:#2563EB; --blue-light:#EFF6FF; --blue-mid:#DBEAFE;
+    --green:#16A34A; --green-light:#F0FDF4;
+    --radius:12px;
+    --font-display:'Sora','Noto Sans SC',sans-serif;
+    --font-body:'Noto Sans SC',sans-serif;
+    --shadow-sm:0 1px 3px rgba(0,0,0,0.07);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.75; -webkit-font-smoothing: antialiased; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); height: 60px; display: flex; align-items: center; }
+  .nav-inner { max-width: 1120px; margin: 0 auto; padding: 0 24px; width: 100%; display: flex; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); margin-right: auto; }
+  .logo-icon { width: 30px; height: 30px; background: linear-gradient(135deg,#2563EB,#60A5FA); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links a { text-decoration: none; color: var(--text2); font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all 0.15s; }
+  .nav-links a:hover { background: var(--bg2); color: var(--text); }
+  .nav-links a.active { color: var(--blue); background: var(--blue-light); }
+
+  /* HERO */
+  .about-hero {
+    background: linear-gradient(160deg, #F0F6FF 0%, #ffffff 65%);
+    border-bottom: 1px solid var(--border);
+    padding: 56px 24px 48px; text-align: center;
+  }
+  .avatar-wrap {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #2563EB, #60A5FA);
+    margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; box-shadow: 0 4px 20px rgba(37,99,235,0.25);
+  }
+  .about-hero h1 { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 10px; letter-spacing: -0.01em; }
+  .about-hero p { font-size: 15px; color: var(--text2); max-width: 480px; margin: 0 auto 24px; line-height: 1.75; }
+  .hero-tags { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 9999px; font-size: 13px; font-weight: 500; }
+  .hero-tag.blue { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-mid); }
+  .hero-tag.green { background: var(--green-light); color: var(--green); border: 1px solid #BBF7D0; }
+  .hero-tag.gray { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+  /* CONTENT */
+  .content-wrap { max-width: 780px; margin: 0 auto; padding: 48px 24px 64px; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 48px; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; }
+  .stat-num { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text); display: block; }
+  .stat-label { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+  /* SECTION */
+  .about-section { margin-bottom: 44px; }
+  .about-section h2 { font-family: var(--font-display); font-size: 19px; font-weight: 600; color: var(--text); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .about-section p { font-size: 15px; color: var(--text2); line-height: 1.8; margin-bottom: 12px; }
+  .about-section p:last-child { margin-bottom: 0; }
+  .about-section p strong { color: var(--text); font-weight: 600; }
+
+  /* PRINCIPLE CARDS */
+  .principle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
+  .principle-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .principle-icon { font-size: 22px; margin-bottom: 8px; }
+  .principle-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+  .principle-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+  /* DISCLAIMER */
+  .disclaimer-box { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 18px 20px; }
+  .disclaimer-box p { font-size: 13px; color: #92400E; line-height: 1.7; margin-bottom: 8px; }
+  .disclaimer-box p:last-child { margin-bottom: 0; }
+  .disclaimer-box strong { color: #78350F; }
+
+  /* CONTACT */
+  .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .contact-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; text-decoration: none; color: var(--text); transition: all 0.15s; }
+  .contact-card:hover { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+  .contact-icon { font-size: 22px; flex-shrink: 0; }
+  .contact-info { min-width: 0; }
+  .contact-type { font-size: 12px; color: var(--text3); margin-bottom: 2px; }
+  .contact-card:hover .contact-type { color: #93C5FD; }
+  .contact-value { font-size: 13px; font-weight: 600; }
+
+  /* CHANGELOG PREVIEW */
+  .changelog-list { list-style: none; }
+  .changelog-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .changelog-item:last-child { border-bottom: none; }
+  .cl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); margin-top: 7px; flex-shrink: 0; }
+  .cl-date { font-size: 12px; color: var(--text3); white-space: nowrap; min-width: 80px; margin-top: 2px; }
+  .cl-content { flex: 1; }
+  .cl-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .cl-desc { font-size: 13px; color: var(--text2); }
+  .cl-tag { display: inline-flex; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 4px; margin-right: 5px; }
+  .cl-tag.new { background: #DCFCE7; color: #166534; }
+  .cl-tag.fix { background: var(--blue-light); color: #1E40AF; }
+  .cl-tag.imp { background: #FEF3C7; color: #92400E; }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); background: var(--bg2); padding: 28px 24px; }
+  .footer-inner { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a { font-size: 13px; color: var(--text3); text-decoration: none; }
+  .footer-links a:hover { color: var(--blue); }
+  .footer-copy { font-size: 12px; color: var(--text3); }
+
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .about-hero { animation: fadeInUp 0.5s ease both; }
+  .stats-grid { animation: fadeInUp 0.5s ease 0.1s both; }
+
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .principle-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="homepage.html"><div class="logo-icon">🛠</div>WinTools</a>
+    <div class="nav-links">
+      <a href="homepage.html">首页</a>
+      <a href="category.html">分类</a>
+      <a href="about.html" class="active">关于</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="about-hero">
+  <div class="avatar-wrap">🛠</div>
+  <h1>关于 WinTools</h1>
+  <p>一个人做的原创 Windows 小工具分享站。每款工具都是为了解决我自己遇到的实际问题，做好了就分享出来，希望也能帮到你。</p>
+  <div class="hero-tags">
+    <span class="hero-tag blue">🆓 永久免费</span>
+    <span class="hero-tag green">✅ 原创工具</span>
+    <span class="hero-tag gray">🔒 无广告追踪</span>
+    <span class="hero-tag gray">📶 工具完全离线</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content-wrap">
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-num">32</span>
+      <div class="stat-label">款原创工具</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">4.8k</span>
+      <div class="stat-label">累计下载次数</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">2024</span>
+      <div class="stat-label">开始做的年份</div>
+    </div>
+  </div>
+
+  <!-- WHY -->
+  <div class="about-section">
+    <h2>🤔 为什么做这个站</h2>
+    <p>每次遇到重复性的电脑操作，我都会找找有没有现成工具。但要么找到的是带广告的捆绑软件，要么是英文界面看不懂，要么下载下来发现根本不能用。</p>
+    <p>后来我干脆自己写，写完发现其实很多人都有一样的需求，就开了这个站分享出来。<strong>每款工具都是我自己实际用过、觉得好用才发布的。</strong></p>
+  </div>
+
+  <!-- PRINCIPLES -->
+  <div class="about-section">
+    <h2>⚡ 工具的几个原则</h2>
+    <div class="principle-grid">
+      <div class="principle-card">
+        <div class="principle-icon">🚀</div>
+        <div class="principle-title">开箱即用</div>
+        <div class="principle-desc">所有工具都是免安装的 .exe，下载双击就能用，不需要装 .NET 或者其他依赖。</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">🔒</div>
+        <div class="principle-title">不联网、不收集数据</div>
+        <div class="principle-desc">工具运行完全在本地，不访问网络，不上报任何使用数据，你的文件只在你的电脑上。</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">🧹</div>
+        <div class="principle-title">干净无广告</div>
+        <div class="principle-desc">没有捆绑安装、没有弹窗广告、没有「下载加速器」，下载的只有工具本身。</div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">📖</div>
+        <div class="principle-title">有教程有说明</div>
+        <div class="principle-desc">每款工具都有图文使用教程，不懂电脑也能照着做，遇到问题可以在评论区问。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="about-section">
+    <h2>📬 联系我</h2>
+    <p>有问题、发现 Bug、或者想要某个功能，都可以联系我。最快的方式是在对应文章下方的<strong>评论区留言</strong>，我每天都会看。</p>
+    <div class="contact-grid">
+      <a class="contact-card" href="mailto:hello@wintools.site">
+        <div class="contact-icon">📧</div>
+        <div class="contact-info"><div class="contact-type">邮箱</div><div class="contact-value">hello@wintools.site</div></div>
+      </a>
+      <a class="contact-card" href="#">
+        <div class="contact-icon">💬</div>
+        <div class="contact-info"><div class="contact-type">微信公众号</div><div class="contact-value">WinTools工具站</div></div>
+      </a>
+      <a class="contact-card" href="#">
+        <div class="contact-icon">🐙</div>
+        <div class="contact-info"><div class="contact-type">GitHub</div><div class="contact-value">github.com/wintools</div></div>
+      </a>
+      <a class="contact-card" href="#">
+        <div class="contact-icon">📡</div>
+        <div class="contact-info"><div class="contact-type">RSS 订阅</div><div class="contact-value">订阅更新通知</div></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- RECENT UPDATES -->
+  <div class="about-section">
+    <h2>🕐 最近更新</h2>
+    <ul class="changelog-list">
+      <li class="changelog-item">
+        <div class="cl-dot"></div>
+        <div class="cl-date">2026-05-14</div>
+        <div class="cl-content">
+          <div class="cl-title"><span class="cl-tag new">NEW</span>文件批量改名工具 v1.3.0</div>
+          <div class="cl-desc">新增「按拍摄时间命名」快捷模式，支持读取照片 EXIF 信息自动排序。</div>
+        </div>
+      </li>
+      <li class="changelog-item">
+        <div class="cl-dot" style="background:#16A34A"></div>
+        <div class="cl-date">2026-05-10</div>
+        <div class="cl-content">
+          <div class="cl-title"><span class="cl-tag fix">FIX</span>开机启动项管理器 v2.1.1</div>
+          <div class="cl-desc">修复在部分 Win11 23H2 系统上无法读取启动项列表的问题。</div>
+        </div>
+      </li>
+      <li class="changelog-item">
+        <div class="cl-dot" style="background:#D97706"></div>
+        <div class="cl-date">2026-05-06</div>
+        <div class="cl-content">
+          <div class="cl-title"><span class="cl-tag imp">改进</span>剪贴板历史管理 v1.2.0</div>
+          <div class="cl-desc">历史记录上限从 20 条提升至 50 条，新增图片预览缩略图。</div>
+        </div>
+      </li>
+      <li class="changelog-item">
+        <div class="cl-dot"></div>
+        <div class="cl-date">2026-04-28</div>
+        <div class="cl-content">
+          <div class="cl-title"><span class="cl-tag new">NEW</span>网速实时监测悬浮窗 v1.0.0 Beta</div>
+          <div class="cl-desc">首次发布，欢迎试用并在评论区反馈问题。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="about-section">
+    <h2>⚠️ 免责声明</h2>
+    <div class="disclaimer-box">
+      <p>本站所有工具均为作者原创开发，<strong>免费提供给个人用户使用，禁止商业用途及二次倒卖。</strong></p>
+      <p>工具在发布前已在 Windows 10/11 环境下测试，但不同电脑环境存在差异，使用前建议先在非重要文件上试用。<strong>对因使用本站工具造成的数据损失，作者不承担责任。</strong></p>
+      <p>下载链接托管于百度网盘/夸克等平台，作者不对第三方平台的稳定性负责。如遇链接失效，请在评论区告知，通常 24 小时内更新。</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div style="font-size:14px;font-weight:600;color:var(--text);">🛠 WinTools</div>
+    <div class="footer-links"><a href="homepage.html">首页</a><a href="category.html">分类</a><a href="about.html">关于</a><a href="#">RSS</a></div>
+    <div class="footer-copy">© 2026 WinTools · 免费分享，禁止倒卖</div>
+  </div>
+</footer>
+</body>
+</html>

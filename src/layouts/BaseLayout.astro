@@ -15,7 +15,7 @@ const {
   canonicalUrl,
 } = Astro.props;
 
-const siteUrl = Astro.site?.origin ?? 'https://wintools.site';
+const siteUrl = Astro.site?.origin ?? 'https://winstools.com';
 const canonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).href;
 const currentPath = Astro.url.pathname;
 const ogImageUrl = new URL(ogImage, siteUrl).href;

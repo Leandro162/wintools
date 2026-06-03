@@ -3,7 +3,7 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  site: process.env.SITE_URL ?? 'https://wintools.site',
+  site: process.env.SITE_URL ?? 'https://winstools.com',
   integrations: [
     mdx(),
     sitemap(),

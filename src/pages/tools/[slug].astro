@@ -25,7 +25,7 @@ const allTools = await getCollection('tools', ({ data }) => !data.draft);
 const related = allTools
   .filter(t => t.id !== slug && t.data.category === category)
   .slice(0, 3);
-const siteUrl = Astro.site?.origin ?? 'https://wintools.site';
+const siteUrl = Astro.site?.origin ?? 'https://winstools.com';
 const canonicalUrl = new URL(`/tools/${slug}`, siteUrl).href;
 ---
 

@@ -68,7 +68,7 @@ Root directory: /
 7. 在 Cloudflare Pages 项目的环境变量里添加：
 
 ```text
-SITE_URL=https://你的域名
+SITE_URL=https://winstools.com
 ```
 
 如果暂时还没有正式域名，可以先用 Cloudflare Pages 默认的 `*.pages.dev` 域名；绑定正式域名后再把 `SITE_URL` 改成正式域名并重新部署。
@@ -98,7 +98,7 @@ wintools.example.com
 后台入口是：
 
 ```text
-https://你的域名/admin
+https://winstools.com/admin
 ```
 
 上线前需要修改 `public/admin/config.yml`：
@@ -153,7 +153,7 @@ downloadLinks:
 4. 提交 sitemap：
 
 ```text
-https://你的域名/sitemap-index.xml
+https://winstools.com/sitemap-index.xml
 ```
 
 ## 注意事项

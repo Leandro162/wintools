@@ -11,6 +11,7 @@ Windows utility directory and tutorial site built with Astro.
 
 - **Type:** Astro static site
 - **Deploy target:** Cloudflare Pages
+- **Production domain:** https://winstools.com
 - **Content:** Markdown files in `src/content/tools`
 - **CMS:** Decap CMS at `/admin`
 - **License:** Private / TBD

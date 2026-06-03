@@ -37,7 +37,7 @@ Root directory: /
 6. Add this environment variable in Cloudflare Pages:
 
 ```text
-SITE_URL=https://your-domain
+SITE_URL=https://winstools.com
 ```
 
 Use the temporary `*.pages.dev` URL first if you have not attached a custom domain yet. After the custom domain is active, update `SITE_URL` and redeploy.

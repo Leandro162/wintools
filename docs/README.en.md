@@ -56,6 +56,18 @@ You can register the domain with Cloudflare Registrar and attach it directly to 
 
 Add tool posts in `src/content/tools/*.md`. Screenshots should be placed in `public/images/` and referenced with paths like `/images/example.png`.
 
+## HTML Import Editor
+
+An HTML import editor is available at:
+
+```text
+https://winstools.com/admin/import/
+```
+
+It can import an HTML tutorial, match local image files, compress them to WebP, rewrite `<img src="">` URLs to `https://winstools.com/images/<slug>/...`, and load the processed HTML into an editable area for final text edits.
+
+The first version runs fully in the browser and does not commit files to GitHub automatically. Download the processed image package and place it under `public/images/<slug>/`, or connect a Worker publishing API later for one-click publishing.
+
 ## CMS
 
 Decap CMS is available at `/admin`, but GitHub authentication requires an OAuth service. Cloudflare Pages does not include Netlify Identity, so for a single-maintainer site the simplest workflow is to edit Markdown files locally, commit them to GitHub, and let Cloudflare Pages rebuild automatically.

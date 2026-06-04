@@ -143,6 +143,26 @@ downloadLinks:
 正文写在这里。
 ```
 
+## HTML 导入编辑器
+
+后台提供一个 HTML 导入编辑器：
+
+```text
+https://winstools.com/admin/import/
+```
+
+它适合把批量生成的 HTML 教程导入成可继续编辑的内容：
+
+1. 上传 HTML 文件。
+2. 填写文章 slug，例如 `file-renamer`。
+3. 批量选择图片或选择图片文件夹。
+4. 点击「处理 HTML」。
+5. 页面会压缩匹配到的图片为 WebP，并把 `<img src="">` 改成 `https://winstools.com/images/<slug>/xxx.webp`。
+6. 处理后的 HTML 会直接进入编辑区域，可以继续改文字和格式。
+7. 完成后可复制最终 HTML，并下载压缩后的图片包。
+
+第一版编辑器只在浏览器里处理文件，不会自动写入 GitHub。发布前需要把下载的图片放入 `public/images/<slug>/`，或后续接入 Worker 发布 API 实现一键提交。
+
 ## Google Search Console
 
 网站上线后建议做：

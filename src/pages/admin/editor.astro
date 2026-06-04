@@ -1,0 +1,491 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="图文编辑器 — WinTools"
+  description="粘贴微信公众号或网页图文，保留格式并将图片压缩上传到 Cloudflare R2。"
+>
+  <section class="editor-shell">
+    <header class="editor-head">
+      <div>
+        <p class="eyebrow">内容后台</p>
+        <h1>图文编辑器</h1>
+      </div>
+      <div class="status" id="statusText">等待编辑</div>
+    </header>
+
+    <section class="settings-panel">
+      <label>
+        <span>文章 slug</span>
+        <input id="slugInput" type="text" placeholder="file-renamer" autocomplete="off" />
+      </label>
+      <label>
+        <span>图片 CDN 地址</span>
+        <input id="imageBaseInput" type="url" value="https://img.winstools.com" />
+      </label>
+      <label>
+        <span>后台发布令牌</span>
+        <input id="adminTokenInput" type="password" placeholder="仅保存在当前浏览器" autocomplete="off" />
+      </label>
+      <label>
+        <span>最大宽度</span>
+        <input id="maxWidthInput" type="number" value="1400" min="320" max="2560" step="40" />
+      </label>
+      <label>
+        <span>WebP 质量</span>
+        <input id="qualityInput" type="number" value="82" min="40" max="95" step="1" />
+      </label>
+      <div class="setting-actions">
+        <button id="saveTokenBtn" type="button">保存令牌</button>
+        <button id="localizeBtn" type="button">本地化图片</button>
+        <button id="copyHtmlBtn" type="button">复制 HTML</button>
+      </div>
+    </section>
+
+    <section class="editor-card">
+      <textarea id="articleEditor"></textarea>
+    </section>
+
+    <section class="queue-panel">
+      <div class="queue-head">
+        <strong>图片处理状态</strong>
+        <span id="imageSummary">尚未处理图片</span>
+      </div>
+      <div id="imageQueue" class="image-queue"></div>
+    </section>
+
+    <section class="output-panel">
+      <div class="queue-head">
+        <strong>HTML 输出</strong>
+        <span>复制到商城后台前可最后检查</span>
+      </div>
+      <textarea id="htmlOutput" spellcheck="false"></textarea>
+    </section>
+  </section>
+</BaseLayout>
+
+<script is:inline src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+  const slugInput = document.getElementById('slugInput');
+  const imageBaseInput = document.getElementById('imageBaseInput');
+  const adminTokenInput = document.getElementById('adminTokenInput');
+  const maxWidthInput = document.getElementById('maxWidthInput');
+  const qualityInput = document.getElementById('qualityInput');
+  const saveTokenBtn = document.getElementById('saveTokenBtn');
+  const localizeBtn = document.getElementById('localizeBtn');
+  const copyHtmlBtn = document.getElementById('copyHtmlBtn');
+  const statusText = document.getElementById('statusText');
+  const imageSummary = document.getElementById('imageSummary');
+  const imageQueue = document.getElementById('imageQueue');
+  const htmlOutput = document.getElementById('htmlOutput');
+
+  const tokenKey = 'winstools-editor-admin-token';
+  const storedToken = localStorage.getItem(tokenKey);
+  if (storedToken) adminTokenInput.value = storedToken;
+
+  let imageCounter = 1;
+  const imageJobs = [];
+
+  saveTokenBtn.addEventListener('click', () => {
+    localStorage.setItem(tokenKey, adminTokenInput.value.trim());
+    setStatus('令牌已保存');
+  });
+
+  localizeBtn.addEventListener('click', async () => {
+    const editor = tinymce.get('articleEditor');
+    await localizeEditorImages(editor);
+  });
+
+  copyHtmlBtn.addEventListener('click', async () => {
+    const html = getEditorHtml();
+    htmlOutput.value = html;
+    await navigator.clipboard.writeText(html);
+    setStatus('HTML 已复制');
+  });
+
+  tinymce.init({
+    selector: '#articleEditor',
+    height: 720,
+    menubar: 'file edit view insert format table tools',
+    plugins: 'autolink lists link image table code fullscreen wordcount paste',
+    toolbar: 'undo redo | blocks | bold italic underline forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
+    language: 'zh_CN',
+    paste_data_images: true,
+    paste_as_text: false,
+    convert_urls: false,
+    extended_valid_elements: '*[*]',
+    valid_children: '+body[style],+body[link],+body[meta]',
+    content_style: `
+      body { font-family: Arial, "Microsoft YaHei", sans-serif; line-height: 1.75; color: #111827; padding: 18px; }
+      img { max-width: 100%; height: auto; }
+      table { max-width: 100%; border-collapse: collapse; }
+      td, th { border: 1px solid #e5e7eb; padding: 8px; }
+    `,
+    images_upload_handler: async (blobInfo) => {
+      const file = blobInfo.blob();
+      const result = await processAndUploadImage(file, blobInfo.filename());
+      return result.url;
+    },
+    setup(editor) {
+      editor.on('init', () => {
+        setStatus('编辑器已就绪');
+      });
+      editor.on('PastePostProcess', () => {
+        window.setTimeout(() => localizeEditorImages(editor), 250);
+      });
+      editor.on('change keyup undo redo setcontent', () => {
+        htmlOutput.value = getEditorHtml();
+      });
+    },
+  });
+
+  async function localizeEditorImages(editor) {
+    if (!editor) return;
+    const doc = editor.getDoc();
+    const images = Array.from(doc.querySelectorAll('img'));
+    let touched = 0;
+
+    for (const img of images) {
+      const src = img.getAttribute('src') || '';
+      if (!src || isLocalR2Url(src) || img.dataset.winstoolsUploading === 'true') continue;
+      if (src.startsWith('data:image/')) {
+        img.dataset.winstoolsUploading = 'true';
+        try {
+          const blob = dataUrlToBlob(src);
+          const result = await processAndUploadImage(blob, 'pasted-image.png');
+          img.setAttribute('src', result.url);
+          img.setAttribute('width', String(result.width));
+          img.setAttribute('height', String(result.height));
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('decoding', 'async');
+          touched += 1;
+        } catch (error) {
+          addImageJob({ name: 'base64 image', status: 'failed', message: error.message });
+        } finally {
+          delete img.dataset.winstoolsUploading;
+        }
+      } else if (/^https?:\/\//i.test(src)) {
+        addImageJob({
+          name: src,
+          status: 'skipped',
+          message: '远程图片暂未自动下载；后续将由 Worker 代下载到 R2',
+        });
+      }
+    }
+
+    if (touched > 0) {
+      editor.fire('change');
+      setStatus(`已本地化 ${touched} 张图片`);
+    }
+    updateSummary();
+  }
+
+  async function processAndUploadImage(file, originalName) {
+    const slug = ensureSlug();
+    const compressed = await compressToWebp(file);
+    const outputName = `${String(imageCounter).padStart(3, '0')}.webp`;
+    imageCounter += 1;
+    const objectKey = `articles/${slug}/${outputName}`;
+
+    addImageJob({
+      name: originalName || outputName,
+      status: 'uploading',
+      message: `${formatBytes(file.size)} -> ${formatBytes(compressed.blob.size)}`,
+      key: objectKey,
+    });
+
+    const url = await uploadToR2(compressed.blob, objectKey);
+    addImageJob({
+      name: outputName,
+      status: 'done',
+      message: url,
+      key: objectKey,
+    });
+    updateSummary();
+    return { url, width: compressed.width, height: compressed.height };
+  }
+
+  async function uploadToR2(blob, key) {
+    const token = adminTokenInput.value.trim();
+    if (!token) throw new Error('请先填写后台发布令牌');
+    const response = await fetch('/api/editor/upload-image', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/octet-stream',
+        'X-Image-Key': key,
+      },
+      body: blob,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || '图片上传失败');
+    return data.url;
+  }
+
+  async function compressToWebp(file) {
+    const bitmap = await createImageBitmap(file);
+    const maxWidth = Number(maxWidthInput.value) || 1400;
+    const quality = Math.min(Math.max(Number(qualityInput.value) || 82, 40), 95) / 100;
+    const scale = Math.min(1, maxWidth / bitmap.width);
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', quality));
+    bitmap.close?.();
+    if (!blob) throw new Error('浏览器无法生成 WebP 图片');
+    return { blob, width, height };
+  }
+
+  function ensureSlug() {
+    const slug = slugify(slugInput.value);
+    if (!slug) throw new Error('请先填写文章 slug');
+    slugInput.value = slug;
+    return slug;
+  }
+
+  function slugify(value) {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80);
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    const [meta, content] = dataUrl.split(',');
+    const mime = /data:([^;]+)/.exec(meta)?.[1] || 'image/png';
+    const binary = atob(content);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+
+  function isLocalR2Url(url) {
+    return url.startsWith(imageBaseInput.value.replace(/\/+$/, ''));
+  }
+
+  function getEditorHtml() {
+    return tinymce.get('articleEditor')?.getContent({ format: 'html' }) ?? '';
+  }
+
+  function addImageJob(job) {
+    imageJobs.push({ ...job, time: new Date().toLocaleTimeString('zh-CN') });
+    renderQueue();
+  }
+
+  function renderQueue() {
+    imageQueue.replaceChildren();
+    imageJobs.slice(-20).reverse().forEach(job => {
+      const row = document.createElement('div');
+      row.className = `queue-row ${job.status}`;
+      const name = document.createElement('strong');
+      name.textContent = job.name;
+      const message = document.createElement('span');
+      message.textContent = `${job.time} · ${job.message}`;
+      row.append(name, message);
+      imageQueue.append(row);
+    });
+  }
+
+  function updateSummary() {
+    const done = imageJobs.filter(job => job.status === 'done').length;
+    const failed = imageJobs.filter(job => job.status === 'failed').length;
+    const skipped = imageJobs.filter(job => job.status === 'skipped').length;
+    imageSummary.textContent = `${done} 已上传 / ${failed} 失败 / ${skipped} 远程待处理`;
+  }
+
+  function setStatus(text) {
+    statusText.textContent = text;
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes) return '0 KB';
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+</script>
+
+<style>
+  .editor-shell {
+    min-height: calc(100vh - var(--nav-h));
+    background: var(--bg2);
+    padding: 24px;
+  }
+  .editor-head,
+  .settings-panel,
+  .editor-card,
+  .queue-panel,
+  .output-panel {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  .editor-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .eyebrow {
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    line-height: 1.2;
+  }
+  .status {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    padding: 6px 12px;
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .settings-panel {
+    display: grid;
+    grid-template-columns: 170px minmax(220px, 1fr) minmax(220px, 1fr) 120px 120px auto;
+    gap: 10px;
+    align-items: end;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  label {
+    display: grid;
+    gap: 5px;
+  }
+  label span {
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+  }
+  .setting-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  button {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+  .editor-card,
+  .queue-panel,
+  .output-panel {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .queue-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .queue-head strong {
+    font-size: 14px;
+  }
+  .queue-head span {
+    color: var(--text3);
+    font-size: 12px;
+  }
+  .image-queue {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+    max-height: 220px;
+    overflow: auto;
+  }
+  .queue-row {
+    display: grid;
+    gap: 2px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    background: var(--bg2);
+  }
+  .queue-row strong {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+  .queue-row span {
+    color: var(--text3);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  .queue-row.done {
+    border-color: var(--green-mid);
+    background: var(--green-light);
+  }
+  .queue-row.failed {
+    border-color: #FECACA;
+    background: #FEF2F2;
+  }
+  .queue-row.skipped {
+    border-color: #FDE68A;
+    background: #FFFBEB;
+  }
+  #htmlOutput {
+    width: 100%;
+    min-height: 220px;
+    border: 0;
+    padding: 14px;
+    resize: vertical;
+    background: #F8FAFC;
+    color: var(--text);
+    font: 13px/1.6 var(--font-mono);
+  }
+  @media (max-width: 1100px) {
+    .settings-panel {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 680px) {
+    .settings-panel {
+      grid-template-columns: 1fr;
+    }
+    .editor-head {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+</style>

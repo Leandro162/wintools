@@ -143,25 +143,40 @@ downloadLinks:
 正文写在这里。
 ```
 
-## HTML 导入编辑器
-
-后台提供一个 HTML 导入编辑器：
+## 图文编辑器
 
 ```text
-https://winstools.com/admin/import/
+https://winstools.com/admin/editor/
 ```
 
-它适合把批量生成的 HTML 教程导入成可继续编辑的内容：
+它适合从微信公众号、网页或其他富文本编辑器直接复制整篇图文，然后粘贴到后台继续编辑。
 
-1. 上传 HTML 文件。
-2. 填写文章 slug，例如 `file-renamer`。
-3. 批量选择图片或选择图片文件夹。
-4. 点击「处理 HTML」。
-5. 页面会压缩匹配到的图片为 WebP，并把 `<img src="">` 改成 `https://winstools.com/images/<slug>/xxx.webp`。
-6. 处理后的 HTML 会直接进入编辑区域，可以继续改文字和格式。
-7. 完成后可复制最终 HTML，并下载压缩后的图片包。
+当前逻辑：
 
-第一版编辑器只在浏览器里处理文件，不会自动写入 GitHub。发布前需要把下载的图片放入 `public/images/<slug>/`，或后续接入 Worker 发布 API 实现一键提交。
+1. 填写文章 slug，例如 `file-renamer`。
+2. 直接把图文内容粘贴到 TinyMCE 编辑器。
+3. 粘贴进来的 base64 图片或剪贴板图片会在浏览器里压缩成 WebP。
+4. 图片通过 Pages Function 上传到 Cloudflare R2。
+5. 图片地址会替换为 `https://img.winstools.com/articles/<slug>/001.webp` 这类长期地址。
+6. 编辑完成后复制最终 HTML。
+
+远程图片 URL，例如微信公众号的 `mmbiz.qpic.cn`，第一版只会标记为“远程待处理”。后续可以接 Worker 代下载远程图片并上传到 R2。
+
+### R2 配置
+
+编辑器需要以下 Cloudflare Pages 配置：
+
+```text
+R2 binding:
+  Variable name: WINSTOOLS_IMAGES
+  Bucket: winstools-images
+
+Environment variables:
+  ADMIN_TOKEN=自定义后台发布令牌
+  IMAGE_BASE_URL=https://img.winstools.com
+```
+
+`ADMIN_TOKEN` 只放在 Cloudflare Pages 环境变量里，不要写入 GitHub 仓库。后台编辑器第一次使用时，把同一个令牌填进页面里的「后台发布令牌」输入框。
 
 ## Google Search Console
 

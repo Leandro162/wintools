@@ -56,17 +56,31 @@ You can register the domain with Cloudflare Registrar and attach it directly to 
 
 Add tool posts in `src/content/tools/*.md`. Screenshots should be placed in `public/images/` and referenced with paths like `/images/example.png`.
 
-## HTML Import Editor
+## Rich Text Editor
 
-An HTML import editor is available at:
+A paste-first rich text editor is available at:
 
 ```text
-https://winstools.com/admin/import/
+https://winstools.com/admin/editor/
 ```
 
-It can import an HTML tutorial, match local image files, compress them to WebP, rewrite `<img src="">` URLs to `https://winstools.com/images/<slug>/...`, and load the processed HTML into an editable area for final text edits.
+It is designed for copying a full article from WeChat, a web page, or another rich text editor and pasting it directly into TinyMCE while preserving formatting.
 
-The first version runs fully in the browser and does not commit files to GitHub automatically. Download the processed image package and place it under `public/images/<slug>/`, or connect a Worker publishing API later for one-click publishing.
+Base64 and clipboard images are compressed to WebP in the browser, uploaded to Cloudflare R2 through a Pages Function, and rewritten to long-term URLs such as `https://img.winstools.com/articles/<slug>/001.webp`.
+
+Remote image URLs are marked for later localization. A Worker-based remote downloader can be added later for platforms that allow server-side fetching.
+
+Required Cloudflare Pages configuration:
+
+```text
+R2 binding:
+  Variable name: WINSTOOLS_IMAGES
+  Bucket: winstools-images
+
+Environment variables:
+  ADMIN_TOKEN=your private editor token
+  IMAGE_BASE_URL=https://img.winstools.com
+```
 
 ## CMS
 

@@ -58,7 +58,13 @@ Add tool posts in `src/content/tools/*.md`. Screenshots should be placed in `pub
 
 ## Rich Text Editor
 
-A paste-first rich text editor is available at:
+Login page:
+
+```text
+https://winstools.com/admin/login/
+```
+
+Editor page:
 
 ```text
 https://winstools.com/admin/editor/
@@ -78,9 +84,13 @@ R2 binding:
   Bucket: winstools-images
 
 Environment variables:
-  ADMIN_TOKEN=your private editor token
+  ADMIN_USERNAME=your admin username
+  ADMIN_PASSWORD=your admin password
+  ADMIN_SESSION_SECRET=a long random session secret
   IMAGE_BASE_URL=https://img.winstools.com
 ```
+
+Admin credentials are stored only in Cloudflare Pages environment variables and must not be committed to GitHub. After a successful login, the Pages Function sets an HttpOnly session cookie; the editor no longer stores or sends a publishing token from the browser.
 
 ## CMS
 

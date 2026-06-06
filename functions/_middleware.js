@@ -1,4 +1,4 @@
-import { readSession } from './_auth.js';
+import { readSession } from '../src/server/admin-auth.js';
 
 const PROTECTED_PREFIXES = ['/admin/editor', '/api/editor/'];
 

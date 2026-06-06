@@ -165,6 +165,8 @@ https://winstools.com/admin/editor/
 
 它适合从微信公众号、网页或其他富文本编辑器直接复制整篇图文，然后粘贴到后台继续编辑。
 
+TinyMCE 由项目通过 npm 自托管，不依赖 Tiny Cloud，也不需要 TinyMCE API Key。执行 `npm run dev` 或 `npm run build` 时，所需编辑器资源会自动复制到 `public/vendor/tinymce/`。
+
 当前逻辑：
 
 1. 使用后台账号和密码登录。

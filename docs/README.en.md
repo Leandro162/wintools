@@ -72,6 +72,8 @@ https://winstools.com/admin/editor/
 
 It is designed for copying a full article from WeChat, a web page, or another rich text editor and pasting it directly into TinyMCE while preserving formatting.
 
+TinyMCE is self-hosted from npm and does not require Tiny Cloud or a TinyMCE API key. The required editor assets are copied to `public/vendor/tinymce/` automatically before `npm run dev` and `npm run build`.
+
 Base64 and clipboard images are compressed to WebP in the browser, uploaded to Cloudflare R2 through a Pages Function, and rewritten to long-term URLs such as `https://img.winstools.com/articles/<slug>/001.webp`.
 
 Remote image URLs are marked for later localization. A Worker-based remote downloader can be added later for platforms that allow server-side fetching.

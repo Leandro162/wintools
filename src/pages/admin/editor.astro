@@ -61,7 +61,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </section>
 </BaseLayout>
 
-<script is:inline src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script is:inline src="/vendor/tinymce/tinymce.min.js"></script>
 
 <script>
   const slugInput = document.getElementById('slugInput');
@@ -103,9 +103,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   tinymce.init({
     selector: '#articleEditor',
+    license_key: 'gpl',
     height: 720,
     menubar: 'file edit view insert format table tools',
-    plugins: 'autolink lists link image table code fullscreen wordcount paste',
+    plugins: 'autolink lists link image table code fullscreen wordcount',
     toolbar: 'undo redo | blocks | bold italic underline forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code fullscreen',
     language: 'zh_CN',
     paste_data_images: true,

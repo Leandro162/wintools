@@ -1,4 +1,4 @@
-import { createSessionCookie } from '../../_auth.js';
+import { createSessionCookie } from '../../../src/server/admin-auth.js';
 
 export async function onRequestPost({ request, env }) {
   if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD || !env.ADMIN_SESSION_SECRET) {

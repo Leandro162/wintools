@@ -25,10 +25,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <input id="imageBaseInput" type="url" value="https://img.winstools.com" />
       </label>
       <label>
-        <span>后台发布令牌</span>
-        <input id="adminTokenInput" type="password" placeholder="仅保存在当前浏览器" autocomplete="off" />
-      </label>
-      <label>
         <span>最大宽度</span>
         <input id="maxWidthInput" type="number" value="1400" min="320" max="2560" step="40" />
       </label>
@@ -37,9 +33,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <input id="qualityInput" type="number" value="82" min="40" max="95" step="1" />
       </label>
       <div class="setting-actions">
-        <button id="saveTokenBtn" type="button">保存令牌</button>
         <button id="localizeBtn" type="button">本地化图片</button>
         <button id="copyHtmlBtn" type="button">复制 HTML</button>
+        <button id="logoutBtn" type="button">退出登录</button>
       </div>
     </section>
 
@@ -70,28 +66,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
   const slugInput = document.getElementById('slugInput');
   const imageBaseInput = document.getElementById('imageBaseInput');
-  const adminTokenInput = document.getElementById('adminTokenInput');
   const maxWidthInput = document.getElementById('maxWidthInput');
   const qualityInput = document.getElementById('qualityInput');
-  const saveTokenBtn = document.getElementById('saveTokenBtn');
   const localizeBtn = document.getElementById('localizeBtn');
   const copyHtmlBtn = document.getElementById('copyHtmlBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
   const statusText = document.getElementById('statusText');
   const imageSummary = document.getElementById('imageSummary');
   const imageQueue = document.getElementById('imageQueue');
   const htmlOutput = document.getElementById('htmlOutput');
 
-  const tokenKey = 'winstools-editor-admin-token';
-  const storedToken = localStorage.getItem(tokenKey);
-  if (storedToken) adminTokenInput.value = storedToken;
-
   let imageCounter = 1;
   const imageJobs = [];
 
-  saveTokenBtn.addEventListener('click', () => {
-    localStorage.setItem(tokenKey, adminTokenInput.value.trim());
-    setStatus('令牌已保存');
-  });
+  ensureSession();
 
   localizeBtn.addEventListener('click', async () => {
     const editor = tinymce.get('articleEditor');
@@ -103,6 +91,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     htmlOutput.value = html;
     await navigator.clipboard.writeText(html);
     setStatus('HTML 已复制');
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'same-origin',
+    });
+    window.location.assign('/admin/login/');
   });
 
   tinymce.init({
@@ -208,20 +204,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
   async function uploadToR2(blob, key) {
-    const token = adminTokenInput.value.trim();
-    if (!token) throw new Error('请先填写后台发布令牌');
     const response = await fetch('/api/editor/upload-image', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/octet-stream',
         'X-Image-Key': key,
       },
+      credentials: 'same-origin',
       body: blob,
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || '图片上传失败');
     return data.url;
+  }
+
+  async function ensureSession() {
+    const response = await fetch('/api/auth/session', { credentials: 'same-origin' });
+    if (!response.ok) {
+      window.location.assign('/admin/login/?next=/admin/editor/');
+      return;
+    }
+    const data = await response.json().catch(() => ({}));
+    if (data.username) setStatus(`已登录：${data.username}`);
   }
 
   async function compressToWebp(file) {
@@ -355,7 +359,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .settings-panel {
     display: grid;
-    grid-template-columns: 170px minmax(220px, 1fr) minmax(220px, 1fr) 120px 120px auto;
+    grid-template-columns: 170px minmax(220px, 1fr) 120px 120px auto;
     gap: 10px;
     align-items: end;
     background: var(--bg);

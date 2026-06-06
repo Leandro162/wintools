@@ -19,11 +19,17 @@ wintools/
 │   │   ├── about.astro             # 关于页
 │   │   ├── search.astro            # 搜索页
 │   │   ├── rss.xml.js              # RSS
+│   │   ├── admin/login.astro       # 后台登录页
+│   │   ├── admin/editor.astro      # 图文编辑器
 │   │   ├── category/index.astro    # 分类入口页
 │   │   ├── category/[category].astro
 │   │   └── tools/[slug].astro      # 工具详情页
 │   └── styles/
 │       └── global.css
+├── functions/                      # Cloudflare Pages Functions
+│   ├── _auth.js                    # 后台会话签名
+│   ├── _middleware.js              # 保护后台路由
+│   └── api/                        # 登录与图片上传接口
 └── public/
     ├── admin/                      # Decap CMS 后台
     ├── images/                     # 文章截图
@@ -145,6 +151,14 @@ downloadLinks:
 
 ## 图文编辑器
 
+登录入口：
+
+```text
+https://winstools.com/admin/login/
+```
+
+编辑器入口：
+
 ```text
 https://winstools.com/admin/editor/
 ```
@@ -153,16 +167,17 @@ https://winstools.com/admin/editor/
 
 当前逻辑：
 
-1. 填写文章 slug，例如 `file-renamer`。
-2. 直接把图文内容粘贴到 TinyMCE 编辑器。
-3. 粘贴进来的 base64 图片或剪贴板图片会在浏览器里压缩成 WebP。
-4. 图片通过 Pages Function 上传到 Cloudflare R2。
-5. 图片地址会替换为 `https://img.winstools.com/articles/<slug>/001.webp` 这类长期地址。
-6. 编辑完成后复制最终 HTML。
+1. 使用后台账号和密码登录。
+2. 填写文章 slug，例如 `file-renamer`。
+3. 直接把图文内容粘贴到 TinyMCE 编辑器。
+4. 粘贴进来的 base64 图片或剪贴板图片会在浏览器里压缩成 WebP。
+5. 图片通过 Pages Function 上传到 Cloudflare R2。
+6. 图片地址会替换为 `https://img.winstools.com/articles/<slug>/001.webp` 这类长期地址。
+7. 编辑完成后复制最终 HTML。
 
 远程图片 URL，例如微信公众号的 `mmbiz.qpic.cn`，第一版只会标记为“远程待处理”。后续可以接 Worker 代下载远程图片并上传到 R2。
 
-### R2 配置
+### R2 与后台登录配置
 
 编辑器需要以下 Cloudflare Pages 配置：
 
@@ -172,11 +187,13 @@ R2 binding:
   Bucket: winstools-images
 
 Environment variables:
-  ADMIN_TOKEN=自定义后台发布令牌
+  ADMIN_USERNAME=你的后台账号
+  ADMIN_PASSWORD=你的后台密码
+  ADMIN_SESSION_SECRET=一段随机长密钥
   IMAGE_BASE_URL=https://img.winstools.com
 ```
 
-`ADMIN_TOKEN` 只放在 Cloudflare Pages 环境变量里，不要写入 GitHub 仓库。后台编辑器第一次使用时，把同一个令牌填进页面里的「后台发布令牌」输入框。
+这些后台登录配置只放在 Cloudflare Pages 环境变量里，不要写入 GitHub 仓库。登录成功后，Pages Function 会设置 HttpOnly 会话 Cookie；编辑器前端不会保存后台密码，也不会再要求填写发布令牌。
 
 ## Google Search Console
 

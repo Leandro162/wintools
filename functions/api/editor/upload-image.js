@@ -1,16 +1,6 @@
 const DEFAULT_IMAGE_BASE_URL = 'https://img.winstools.com';
 
 export async function onRequestPost({ request, env }) {
-  const expectedToken = env.ADMIN_TOKEN;
-  if (!expectedToken) {
-    return json({ error: 'ADMIN_TOKEN is not configured' }, 500);
-  }
-
-  const auth = request.headers.get('Authorization') || '';
-  if (auth !== `Bearer ${expectedToken}`) {
-    return json({ error: 'Unauthorized' }, 401);
-  }
-
   if (!env.WINSTOOLS_IMAGES) {
     return json({ error: 'R2 binding WINSTOOLS_IMAGES is not configured' }, 500);
   }
@@ -69,6 +59,6 @@ function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': 'https://winstools.com',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Image-Key',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Image-Key',
   };
 }

@@ -1,0 +1,127 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="后台登录 — WinTools"
+  description="登录 WinTools 内容后台。"
+>
+  <section class="login-shell">
+    <form class="login-card" id="loginForm">
+      <p class="eyebrow">内容后台</p>
+      <h1>后台登录</h1>
+      <label>
+        <span>管理员账号</span>
+        <input id="usernameInput" name="username" type="text" autocomplete="username" required />
+      </label>
+      <label>
+        <span>管理员密码</span>
+        <input id="passwordInput" name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <button id="loginButton" type="submit">登录</button>
+      <p class="message" id="messageText"></p>
+    </form>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('loginForm');
+  const usernameInput = document.getElementById('usernameInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const loginButton = document.getElementById('loginButton');
+  const messageText = document.getElementById('messageText');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    loginButton.disabled = true;
+    messageText.textContent = '正在登录...';
+
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        username: usernameInput.value.trim(),
+        password: passwordInput.value,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      loginButton.disabled = false;
+      messageText.textContent = data.error || '登录失败';
+      return;
+    }
+
+    const next = new URLSearchParams(window.location.search).get('next') || '/admin/editor/';
+    window.location.assign(next.startsWith('/') ? next : '/admin/editor/');
+  });
+</script>
+
+<style>
+  .login-shell {
+    min-height: calc(100vh - var(--nav-h));
+    display: grid;
+    place-items: center;
+    background: var(--bg2);
+    padding: 24px;
+  }
+  .login-card {
+    width: min(100%, 420px);
+    display: grid;
+    gap: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    padding: 24px;
+  }
+  .eyebrow {
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    line-height: 1.2;
+  }
+  label {
+    display: grid;
+    gap: 6px;
+  }
+  label span {
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 12px;
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+  }
+  button {
+    border: 1px solid var(--blue);
+    background: var(--blue);
+    color: #fff;
+    border-radius: 8px;
+    padding: 11px 14px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+  .message {
+    min-height: 20px;
+    color: var(--red);
+    font-size: 13px;
+  }
+</style>

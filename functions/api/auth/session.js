@@ -1,4 +1,4 @@
-import { readSession } from '../../_auth.js';
+import { readSession } from '../../../src/server/admin-auth.js';
 
 export async function onRequestGet({ request, env }) {
   const session = await readSession(request, env.ADMIN_SESSION_SECRET);

@@ -1,3 +1,5 @@
+import { sanitizeImageKey } from '../../../src/server/image-keys.js';
+
 const DEFAULT_IMAGE_BASE_URL = 'https://img.winstools.com';
 
 export async function onRequestPost({ request, env }) {
@@ -5,7 +7,7 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'R2 binding WINSTOOLS_IMAGES is not configured' }, 500);
   }
 
-  const key = sanitizeKey(request.headers.get('X-Image-Key') || '');
+  const key = sanitizeImageKey(request.headers.get('X-Image-Key') || '');
   if (!key) {
     return json({ error: 'Missing image key' }, 400);
   }
@@ -33,16 +35,6 @@ export async function onRequestPost({ request, env }) {
 
 export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: corsHeaders() });
-}
-
-function sanitizeKey(value) {
-  const key = value
-    .replace(/^\/+/, '')
-    .replace(/\\/g, '/')
-    .replace(/\/+/g, '/');
-
-  if (!/^articles\/[a-z0-9-]+\/[a-z0-9._-]+\.webp$/.test(key)) return '';
-  return key;
 }
 
 function json(payload, status = 200) {

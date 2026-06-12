@@ -76,6 +76,8 @@ TinyMCE is self-hosted from npm and does not require Tiny Cloud or a TinyMCE API
 
 Base64 and clipboard images are compressed to WebP in the browser, uploaded to Cloudflare R2 through a Pages Function, and rewritten to long-term URLs such as `https://img.winstools.com/articles/<slug>/001.webp`.
 
+The editor can also generate a 16:9 cover with Cloudflare Workers AI, save a draft to GitHub, reload an existing article by slug, and publish the final Markdown to `src/content/tools/`. Each GitHub write triggers the connected Cloudflare Pages deployment.
+
 Remote image URLs are marked for later localization. A Worker-based remote downloader can be added later for platforms that allow server-side fetching.
 
 Required Cloudflare Pages configuration:
@@ -85,14 +87,24 @@ R2 binding:
   Variable name: WINSTOOLS_IMAGES
   Bucket: winstools-images
 
+Workers AI binding:
+  Variable name: AI
+
 Environment variables:
   ADMIN_USERNAME=your admin username
   ADMIN_PASSWORD=your admin password
   ADMIN_SESSION_SECRET=a long random session secret
   IMAGE_BASE_URL=https://img.winstools.com
+  GITHUB_REPOSITORY=Leandro162/wintools
+  GITHUB_BRANCH=main
+
+Secret:
+  GITHUB_CONTENT_TOKEN=a GitHub fine-grained personal access token
 ```
 
-Admin credentials are stored only in Cloudflare Pages environment variables and must not be committed to GitHub. After a successful login, the Pages Function sets an HttpOnly session cookie; the editor no longer stores or sends a publishing token from the browser.
+Admin credentials are stored only in Cloudflare Pages environment variables and must not be committed to GitHub. After a successful login, the Pages Function sets an HttpOnly session cookie.
+
+`GITHUB_CONTENT_TOKEN` is a server-side publishing credential, not an admin login token. Create a fine-grained personal access token limited to `Leandro162/wintools` with only **Contents: Read and write**, then store it as an encrypted Cloudflare secret. Never expose it to browser code or commit it to the repository.
 
 ## CMS
 

@@ -39,6 +39,78 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </div>
     </section>
 
+    <section class="metadata-panel">
+      <div class="panel-head">
+        <strong>文章信息</strong>
+        <span>保存和发布时写入文章元数据</span>
+      </div>
+      <div class="metadata-grid">
+        <label class="wide-field">
+          <span>文章标题</span>
+          <input id="titleInput" type="text" placeholder="文件批量改名工具 — 三步完成批量重命名" />
+        </label>
+        <label class="wide-field">
+          <span>文章简介</span>
+          <textarea id="descriptionInput" rows="3" placeholder="用一两句话概括文章解决的问题"></textarea>
+        </label>
+        <label>
+          <span>分类</span>
+          <select id="categoryInput">
+            <option>文件处理</option><option>系统优化</option><option>效率工具</option><option>网络工具</option><option>其他</option>
+          </select>
+        </label>
+        <label><span>版本</span><input id="versionInput" type="text" value="v1.0.0" /></label>
+        <label><span>文件大小</span><input id="fileSizeInput" type="text" value="约 2 MB" /></label>
+        <label><span>兼容系统</span><input id="compatibilityInput" type="text" value="Windows 10 / 11（64位）" /></label>
+        <label><span>发布日期</span><input id="publishDateInput" type="date" /></label>
+        <label><span>封面 Emoji 兜底</span><input id="coverEmojiInput" type="text" value="🛠" maxlength="8" /></label>
+        <label class="wide-field"><span>标签（逗号分隔）</span><input id="tagsInput" type="text" placeholder="免安装, 文件管理, 批量处理" /></label>
+        <label class="check-field"><input id="featuredInput" type="checkbox" /><span>设为首页推荐</span></label>
+      </div>
+    </section>
+
+    <section class="cover-panel">
+      <div class="panel-head">
+        <strong>文章首图</strong>
+        <span>统一裁切为 16:9 WebP 并存储到 R2</span>
+      </div>
+      <div class="cover-content">
+        <div class="cover-preview" id="coverPreview">
+          <img id="coverPreviewImage" alt="文章首图预览" hidden />
+          <span id="coverPreviewFallback">尚未设置首图</span>
+        </div>
+        <div class="cover-controls">
+          <label><span>首图地址</span><input id="coverUrlInput" type="url" placeholder="上传后自动填写" readonly /></label>
+          <input id="coverFileInput" type="file" accept="image/*" hidden />
+          <div class="setting-actions">
+            <button id="generateCoverBtn" type="button">AI 生成首图</button>
+            <button id="chooseCoverBtn" type="button">选择图片</button>
+            <button id="clearCoverBtn" type="button">清除首图</button>
+          </div>
+          <p class="cover-hint">建议使用清晰横图；上传时会自动居中裁切并压缩。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="publish-panel">
+      <div class="panel-head">
+        <strong>下载与发布</strong>
+        <span>文章会保存到 GitHub，随后由 Cloudflare Pages 自动部署</span>
+      </div>
+      <div class="publish-content">
+        <div class="download-grid">
+          <label><span>下载名称</span><input id="downloadNameInput" type="text" value="百度网盘" /></label>
+          <label class="download-url"><span>下载地址</span><input id="downloadUrlInput" type="url" placeholder="https://..." /></label>
+          <label><span>提取码</span><input id="extractCodeInput" type="text" maxlength="32" placeholder="可选" /></label>
+        </div>
+        <div class="publish-actions">
+          <button id="loadArticleBtn" type="button">载入文章</button>
+          <button id="saveDraftBtn" type="button">保存草稿</button>
+          <button id="publishArticleBtn" class="primary-button" type="button">正式发布</button>
+        </div>
+      </div>
+    </section>
+
     <section class="editor-card">
       <textarea id="articleEditor"></textarea>
     </section>
@@ -75,11 +147,36 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const imageSummary = document.getElementById('imageSummary');
   const imageQueue = document.getElementById('imageQueue');
   const htmlOutput = document.getElementById('htmlOutput');
+  const titleInput = document.getElementById('titleInput');
+  const descriptionInput = document.getElementById('descriptionInput');
+  const categoryInput = document.getElementById('categoryInput');
+  const versionInput = document.getElementById('versionInput');
+  const fileSizeInput = document.getElementById('fileSizeInput');
+  const compatibilityInput = document.getElementById('compatibilityInput');
+  const publishDateInput = document.getElementById('publishDateInput');
+  const coverEmojiInput = document.getElementById('coverEmojiInput');
+  const tagsInput = document.getElementById('tagsInput');
+  const featuredInput = document.getElementById('featuredInput');
+  const coverUrlInput = document.getElementById('coverUrlInput');
+  const coverFileInput = document.getElementById('coverFileInput');
+  const generateCoverBtn = document.getElementById('generateCoverBtn');
+  const chooseCoverBtn = document.getElementById('chooseCoverBtn');
+  const clearCoverBtn = document.getElementById('clearCoverBtn');
+  const coverPreviewImage = document.getElementById('coverPreviewImage');
+  const coverPreviewFallback = document.getElementById('coverPreviewFallback');
+  const downloadNameInput = document.getElementById('downloadNameInput');
+  const downloadUrlInput = document.getElementById('downloadUrlInput');
+  const extractCodeInput = document.getElementById('extractCodeInput');
+  const loadArticleBtn = document.getElementById('loadArticleBtn');
+  const saveDraftBtn = document.getElementById('saveDraftBtn');
+  const publishArticleBtn = document.getElementById('publishArticleBtn');
 
   let imageCounter = 1;
   const imageJobs = [];
 
+  publishDateInput.value = new Date().toISOString().slice(0, 10);
   ensureSession();
+  renderCoverPreview();
 
   localizeBtn.addEventListener('click', async () => {
     const editor = tinymce.get('articleEditor');
@@ -99,6 +196,93 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       credentials: 'same-origin',
     });
     window.location.assign('/admin/login/');
+  });
+
+  chooseCoverBtn.addEventListener('click', () => coverFileInput.click());
+
+  generateCoverBtn.addEventListener('click', async () => {
+    try {
+      const slug = ensureSlug();
+      if (!titleInput.value.trim()) throw new Error('请先填写文章标题');
+      generateCoverBtn.disabled = true;
+      setStatus('AI 正在生成首图...');
+      const response = await fetch('/api/editor/generate-cover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          title: titleInput.value.trim(),
+          description: descriptionInput.value.trim(),
+          category: categoryInput.value,
+          bodyHtml: getEditorHtml(),
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'AI 首图生成失败');
+      }
+      const generated = await response.blob();
+      const compressed = await compressCoverToWebp(generated);
+      const key = `covers/${slug}/cover-${Date.now()}.webp`;
+      coverUrlInput.value = await uploadToR2(compressed, key);
+      renderCoverPreview();
+      setStatus('AI 首图已生成并上传');
+    } catch (error) {
+      setStatus(error.message || 'AI 首图生成失败');
+    } finally {
+      generateCoverBtn.disabled = false;
+    }
+  });
+
+  coverFileInput.addEventListener('change', async () => {
+    const file = coverFileInput.files?.[0];
+    if (!file) return;
+    try {
+      chooseCoverBtn.disabled = true;
+      setStatus('正在处理首图...');
+      const slug = ensureSlug();
+      const compressed = await compressCoverToWebp(file);
+      const key = `covers/${slug}/cover-${Date.now()}.webp`;
+      coverUrlInput.value = await uploadToR2(compressed, key);
+      renderCoverPreview();
+      setStatus('首图已上传');
+    } catch (error) {
+      setStatus(error.message || '首图上传失败');
+    } finally {
+      chooseCoverBtn.disabled = false;
+      coverFileInput.value = '';
+    }
+  });
+
+  clearCoverBtn.addEventListener('click', () => {
+    coverUrlInput.value = '';
+    renderCoverPreview();
+    setStatus('首图已清除');
+  });
+
+  loadArticleBtn.addEventListener('click', async () => {
+    try {
+      setPublishingState(true);
+      const slug = ensureSlug();
+      setStatus('正在从 GitHub 载入文章...');
+      const response = await fetch(`/api/editor/article?slug=${encodeURIComponent(slug)}`, {
+        credentials: 'same-origin',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || '载入文章失败');
+      applyArticleData(data.article);
+      setStatus(data.article.draft ? '草稿已载入' : '已发布文章已载入');
+    } catch (error) {
+      setStatus(error.message || '载入文章失败');
+    } finally {
+      setPublishingState(false);
+    }
+  });
+
+  saveDraftBtn.addEventListener('click', () => saveArticle('draft'));
+  publishArticleBtn.addEventListener('click', async () => {
+    if (!window.confirm('确定正式发布这篇文章吗？发布后 GitHub 会触发 Cloudflare 自动部署。')) return;
+    await saveArticle('publish');
   });
 
   tinymce.init({
@@ -219,6 +403,78 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     return data.url;
   }
 
+  async function saveArticle(mode) {
+    try {
+      setPublishingState(true);
+      const article = collectArticleData();
+      setStatus(mode === 'publish' ? '正在提交发布...' : '正在保存草稿...');
+      const response = await fetch('/api/editor/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ mode, article }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || '保存文章失败');
+      setStatus(mode === 'publish' ? '发布提交成功，Cloudflare 正在部署' : '草稿已保存到 GitHub');
+    } catch (error) {
+      setStatus(error.message || '保存文章失败');
+    } finally {
+      setPublishingState(false);
+    }
+  }
+
+  function collectArticleData() {
+    return {
+      slug: ensureSlug(),
+      title: titleInput.value.trim(),
+      description: descriptionInput.value.trim(),
+      category: categoryInput.value,
+      version: versionInput.value.trim(),
+      fileSize: fileSizeInput.value.trim(),
+      compatibility: compatibilityInput.value.trim(),
+      publishDate: publishDateInput.value,
+      cover: coverUrlInput.value.trim(),
+      coverEmoji: coverEmojiInput.value.trim(),
+      tags: tagsInput.value.split(/[,，]/).map(tag => tag.trim()).filter(Boolean),
+      featured: featuredInput.checked,
+      downloadLinks: [{
+        name: downloadNameInput.value.trim(),
+        url: downloadUrlInput.value.trim(),
+        extractCode: extractCodeInput.value.trim(),
+      }],
+      bodyHtml: getEditorHtml(),
+    };
+  }
+
+  function applyArticleData(article) {
+    slugInput.value = article.slug || '';
+    titleInput.value = article.title || '';
+    descriptionInput.value = article.description || '';
+    categoryInput.value = article.category || '其他';
+    versionInput.value = article.version || '';
+    fileSizeInput.value = article.fileSize || '';
+    compatibilityInput.value = article.compatibility || '';
+    publishDateInput.value = article.publishDate || '';
+    coverUrlInput.value = article.cover || '';
+    coverEmojiInput.value = article.coverEmoji || '';
+    tagsInput.value = Array.isArray(article.tags) ? article.tags.join(', ') : '';
+    featuredInput.checked = Boolean(article.featured);
+    const download = article.downloadLinks?.[0] || {};
+    downloadNameInput.value = download.name || '百度网盘';
+    downloadUrlInput.value = download.url || '';
+    extractCodeInput.value = download.extractCode || '';
+    tinymce.get('articleEditor')?.setContent(article.bodyHtml || '');
+    htmlOutput.value = article.bodyHtml || '';
+    renderCoverPreview();
+  }
+
+  function setPublishingState(disabled) {
+    loadArticleBtn.disabled = disabled;
+    saveDraftBtn.disabled = disabled;
+    publishArticleBtn.disabled = disabled;
+  }
+
   async function ensureSession() {
     const response = await fetch('/api/auth/session', { credentials: 'same-origin' });
     if (!response.ok) {
@@ -227,6 +483,37 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
     const data = await response.json().catch(() => ({}));
     if (data.username) setStatus(`已登录：${data.username}`);
+  }
+
+  async function compressCoverToWebp(file) {
+    const bitmap = await createImageBitmap(file);
+    const targetWidth = 1280;
+    const targetHeight = 720;
+    const sourceRatio = bitmap.width / bitmap.height;
+    const targetRatio = targetWidth / targetHeight;
+    let sx = 0; let sy = 0; let sw = bitmap.width; let sh = bitmap.height;
+    if (sourceRatio > targetRatio) {
+      sw = Math.round(bitmap.height * targetRatio);
+      sx = Math.round((bitmap.width - sw) / 2);
+    } else {
+      sh = Math.round(bitmap.width / targetRatio);
+      sy = Math.round((bitmap.height - sh) / 2);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth; canvas.height = targetHeight;
+    canvas.getContext('2d').drawImage(bitmap, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.84));
+    bitmap.close?.();
+    if (!blob) throw new Error('浏览器无法生成首图 WebP');
+    return blob;
+  }
+
+  function renderCoverPreview() {
+    const url = coverUrlInput.value.trim();
+    coverPreviewImage.hidden = !url;
+    coverPreviewFallback.hidden = Boolean(url);
+    if (url) coverPreviewImage.src = url;
+    else coverPreviewImage.removeAttribute('src');
   }
 
   async function compressToWebp(file) {
@@ -324,6 +611,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .editor-head,
   .settings-panel,
+  .metadata-panel,
+  .cover-panel,
+  .publish-panel,
   .editor-card,
   .queue-panel,
   .output-panel {
@@ -408,6 +698,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border-color: var(--blue);
     color: var(--blue);
   }
+  .metadata-panel,
+  .cover-panel,
+  .publish-panel,
   .editor-card,
   .queue-panel,
   .output-panel {
@@ -418,6 +711,41 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     overflow: hidden;
     margin-bottom: 16px;
   }
+  .panel-head,
+  .queue-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+  }
+  .panel-head strong { font-size: 14px; }
+  .panel-head span { color: var(--text3); font-size: 12px; }
+  .metadata-grid {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 14px;
+  }
+  .wide-field { grid-column: span 2; }
+  .check-field { display: flex; align-items: center; gap: 8px; align-self: end; min-height: 39px; }
+  .check-field input { width: auto; }
+  textarea, select {
+    width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px;
+    font: inherit; color: var(--text); background: var(--bg);
+  }
+  .cover-content { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(260px, 420px); gap: 16px; padding: 14px; }
+  .cover-preview {
+    aspect-ratio: 16/9; display: grid; place-items: center; overflow: hidden;
+    border: 1px dashed var(--border); border-radius: 8px; background: var(--bg2); color: var(--text3);
+  }
+  .cover-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cover-controls { display: grid; align-content: start; gap: 12px; }
+  .cover-hint { color: var(--text3); font-size: 12px; line-height: 1.6; }
+  .publish-content {
+    display: flex; align-items: end; justify-content: space-between; gap: 16px; padding: 14px;
+  }
+  .download-grid {
+    display: grid; grid-template-columns: 160px minmax(280px, 1fr) 120px; gap: 12px; flex: 1;
+  }
+  .publish-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .primary-button { background: var(--blue); border-color: var(--blue); color: white; }
+  .primary-button:hover { background: var(--blue-dark); border-color: var(--blue-dark); color: white; }
+  button:disabled { opacity: 0.6; cursor: wait; }
   .queue-head {
     display: flex;
     align-items: center;
@@ -480,14 +808,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font: 13px/1.6 var(--font-mono);
   }
   @media (max-width: 1100px) {
-    .settings-panel {
-      grid-template-columns: 1fr 1fr;
-    }
+    .settings-panel { grid-template-columns: 1fr 1fr; }
+    .metadata-grid { grid-template-columns: 1fr 1fr; }
+    .cover-content { grid-template-columns: 1fr; }
+    .publish-content { align-items: stretch; flex-direction: column; }
+    .download-grid { grid-template-columns: 1fr 1fr; }
+    .download-url { grid-column: span 2; }
+    .publish-actions { justify-content: flex-start; }
   }
   @media (max-width: 680px) {
-    .settings-panel {
-      grid-template-columns: 1fr;
-    }
+    .settings-panel, .metadata-grid { grid-template-columns: 1fr; }
+    .wide-field { grid-column: span 1; }
+    .download-grid { grid-template-columns: 1fr; }
+    .download-url { grid-column: span 1; }
     .editor-head {
       align-items: start;
       flex-direction: column;

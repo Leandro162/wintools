@@ -1,9 +1,12 @@
 ---
+import { getCoverPresentation } from '../lib/cover-presentation.js';
+
 interface Props {
   slug: string;
   title: string;
   description: string;
   category: string;
+  cover?: string;
   coverEmoji?: string;
   publishDate: Date;
   featured?: boolean;
@@ -17,6 +20,7 @@ const {
   title,
   description,
   category,
+  cover = '',
   coverEmoji = '🛠',
   publishDate,
   featured = false,
@@ -29,19 +33,14 @@ const dateStr = publishDate.toLocaleDateString('zh-CN', {
   year: 'numeric', month: '2-digit', day: '2-digit',
 }).replace(/\//g, '-');
 
-const categoryColors: Record<string, string> = {
-  '文件处理': 'linear-gradient(135deg,#EFF6FF,#DBEAFE)',
-  '系统优化': 'linear-gradient(135deg,#F0FDF4,#DCFCE7)',
-  '效率工具': 'linear-gradient(135deg,#FFFBEB,#FDE68A)',
-  '网络工具': 'linear-gradient(135deg,#FDF4FF,#E9D5FF)',
-  '其他':     'linear-gradient(135deg,#F8FAFC,#E2E8F0)',
-};
-const coverBg = categoryColors[category] ?? categoryColors['其他'];
+const coverPresentation = getCoverPresentation({ cover, category, coverEmoji });
 ---
 
 <a class:list={['tool-card', { featured }, className]} href={`/tools/${slug}`}>
-  <div class="card-cover" style={`background:${coverBg}`}>
-    <span class="cover-emoji" aria-hidden="true">{coverEmoji}</span>
+  <div class="card-cover" style={`background:${coverPresentation.background}`}>
+    {coverPresentation.image
+      ? <img src={coverPresentation.image} alt="" loading="lazy" decoding="async" />
+      : <span class="cover-emoji" aria-hidden="true">{coverPresentation.emoji}</span>}
     {featured && <span class="badge badge-new">NEW</span>}
   </div>
   <div class="card-body">
@@ -84,6 +83,12 @@ const coverBg = categoryColors[category] ?? categoryColors['其他'];
     position: relative;
     width: 100%; aspect-ratio: 16/9;
     display: flex; align-items: center; justify-content: center;
+  }
+  .card-cover img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
   }
   .cover-emoji { font-size: 38px; }
   .badge {

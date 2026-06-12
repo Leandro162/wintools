@@ -8,6 +8,7 @@ const searchData = allTools.map(t => ({
   title: t.data.title,
   description: t.data.description,
   category: t.data.category,
+  cover: t.data.cover ?? '',
   coverEmoji: t.data.coverEmoji ?? '🛠',
   tags: t.data.tags,
 }));
@@ -57,7 +58,11 @@ const searchData = allTools.map(t => ({
       <div class="all-grid" id="allGrid">
         {allTools.map(t => (
           <a class="mini-card" href={`/tools/${t.id}`}>
-            <span class="mini-emoji">{t.data.coverEmoji ?? '🛠'}</span>
+            <span class="mini-emoji">
+              {t.data.cover
+                ? <img src={t.data.cover} alt="" loading="lazy" decoding="async" />
+                : (t.data.coverEmoji ?? '🛠')}
+            </span>
             <div>
               <div class="mini-title">{t.data.title.split('—')[0].trim()}</div>
               <div class="mini-cat">{t.data.category}</div>
@@ -123,7 +128,15 @@ const searchData = allTools.map(t => ({
 
       const thumb = document.createElement('div');
       thumb.className = 'result-thumb';
-      thumb.textContent = item.coverEmoji;
+      if (item.cover) {
+        const image = document.createElement('img');
+        image.src = item.cover;
+        image.alt = '';
+        image.loading = 'lazy';
+        thumb.append(image);
+      } else {
+        thumb.textContent = item.coverEmoji;
+      }
 
       const body = document.createElement('div');
       body.className = 'result-body';
@@ -290,6 +303,10 @@ const searchData = allTools.map(t => ({
     transition: all 0.15s;
   }
   .mini-card:hover { background: var(--blue-light); border-color: var(--blue); }
+  .mini-emoji img,
+  .result-thumb img {
+    width: 100%; height: 100%; display: block; object-fit: cover;
+  }
   .mini-emoji { font-size: 22px; flex-shrink: 0; }
   .mini-title { font-size: 13px; font-weight: 600; color: var(--text); }
   .mini-cat { font-size: 11px; color: var(--text3); margin-top: 2px; }

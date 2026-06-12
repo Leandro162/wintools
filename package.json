@@ -8,7 +8,8 @@
     "dev": "astro dev",
     "prebuild": "npm run prepare:tinymce",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test": "node --test"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",
@@ -16,6 +17,7 @@
     "@astrojs/sitemap": "^3.7.2",
     "astro": "^6.3.7",
     "tinymce": "^7.9.3",
-    "tinymce-i18n": "^26.5.18"
+    "tinymce-i18n": "^26.5.18",
+    "yaml": "^2.9.0"
   }
 }

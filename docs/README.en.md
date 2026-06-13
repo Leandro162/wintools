@@ -76,7 +76,7 @@ TinyMCE is self-hosted from npm and does not require Tiny Cloud or a TinyMCE API
 
 Base64 and clipboard images are compressed to WebP in the browser, uploaded to Cloudflare R2 through a Pages Function, and rewritten to long-term URLs such as `https://img.winstools.com/articles/<slug>/001.webp`.
 
-The editor can also generate a 16:9 cover with Cloudflare Workers AI, save a draft to GitHub, reload an existing article by slug, and publish the final Markdown to `src/content/tools/`. Each GitHub write triggers the connected Cloudflare Pages deployment.
+After the article is ready, the editor can call a configured OpenAI-compatible text model to generate an editable cover-image prompt. Copy that prompt into an external image tool, then upload the result. The browser center-crops it to 1280 x 720, converts it to WebP, and uploads it to R2. The editor can also save drafts to GitHub, reload articles by slug, and publish Markdown to `src/content/tools/`.
 
 Remote image URLs are marked for later localization. A Worker-based remote downloader can be added later for platforms that allow server-side fetching.
 
@@ -87,9 +87,6 @@ R2 binding:
   Variable name: WINSTOOLS_IMAGES
   Bucket: winstools-images
 
-Workers AI binding:
-  Variable name: AI
-
 Environment variables:
   ADMIN_USERNAME=your admin username
   ADMIN_PASSWORD=your admin password
@@ -97,12 +94,17 @@ Environment variables:
   IMAGE_BASE_URL=https://img.winstools.com
   GITHUB_REPOSITORY=Leandro162/wintools
   GITHUB_BRANCH=main
+  TEXT_AI_API_URL=https://provider.example/v1/chat/completions
+  TEXT_AI_MODEL=provider-model-name
 
-Secret:
+Secrets:
   GITHUB_CONTENT_TOKEN=a GitHub fine-grained personal access token
+  TEXT_AI_API_KEY=the text provider API key
 ```
 
 Admin credentials are stored only in Cloudflare Pages environment variables and must not be committed to GitHub. After a successful login, the Pages Function sets an HttpOnly session cookie.
+
+`TEXT_AI_API_URL` must point to an OpenAI-compatible Chat Completions endpoint, and `TEXT_AI_MODEL` selects the provider model. Store `TEXT_AI_API_KEY` as an encrypted Cloudflare secret. These values are used only by the server-side Pages Function and are never sent to the browser.
 
 `GITHUB_CONTENT_TOKEN` is a server-side publishing credential, not an admin login token. Create a fine-grained personal access token limited to `Leandro162/wintools` with only **Contents: Read and write**, then store it as an encrypted Cloudflare secret. Never expose it to browser code or commit it to the repository.
 

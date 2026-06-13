@@ -175,9 +175,12 @@ TinyMCE 由项目通过 npm 自托管，不依赖 Tiny Cloud，也不需要 Tiny
 4. 粘贴进来的 base64 图片或剪贴板图片会在浏览器里压缩成 WebP。
 5. 图片通过 Pages Function 上传到 Cloudflare R2。
 6. 图片地址会替换为 `https://img.winstools.com/articles/<slug>/001.webp` 这类长期地址。
-7. 填写下载地址后，可保存为 GitHub 草稿或正式发布。
-8. 正式发布会把 Markdown 写入 `src/content/tools/`，并触发 Cloudflare Pages 自动部署。
-9. 已有文章可通过 slug 从 GitHub 重新载入编辑。
+7. 文章修改完成后，点击“生成首图提示词”，服务端会调用你配置的 OpenAI 兼容文本模型。
+8. 提示词会显示在可编辑文本框中，可修改并一键复制到外部图片生成工具。
+9. 在外部生成图片后，点击“上传生成的图片”。浏览器会居中裁切为 1280 × 720、压缩为 WebP，并上传到 R2。
+10. 填写下载地址后，可保存为 GitHub 草稿或正式发布。
+11. 正式发布会把 Markdown 写入 `src/content/tools/`，并触发 Cloudflare Pages 自动部署。
+12. 已有文章可通过 slug 从 GitHub 重新载入编辑。
 
 远程图片 URL，例如微信公众号的 `mmbiz.qpic.cn`，第一版只会标记为“远程待处理”。后续可以接 Worker 代下载远程图片并上传到 R2。
 
@@ -190,9 +193,6 @@ R2 binding:
   Variable name: WINSTOOLS_IMAGES
   Bucket: winstools-images
 
-Workers AI binding:
-  Variable name: AI
-
 Environment variables:
   ADMIN_USERNAME=你的后台账号
   ADMIN_PASSWORD=你的后台密码
@@ -200,14 +200,17 @@ Environment variables:
   IMAGE_BASE_URL=https://img.winstools.com
   GITHUB_REPOSITORY=Leandro162/wintools
   GITHUB_BRANCH=main
+  TEXT_AI_API_URL=https://provider.example/v1/chat/completions
+  TEXT_AI_MODEL=模型名称
 
-Secret:
+Secrets:
   GITHUB_CONTENT_TOKEN=GitHub fine-grained personal access token
+  TEXT_AI_API_KEY=文本模型 API Key
 ```
 
 这些后台登录配置只放在 Cloudflare Pages 环境变量里，不要写入 GitHub 仓库。登录成功后，Pages Function 会设置 HttpOnly 会话 Cookie；编辑器前端不会保存后台密码。
 
-`AI` 是 Cloudflare Workers AI 绑定，用于根据标题、简介和正文生成无文字的 16:9 首图。生成结果仍会经过浏览器裁切压缩，并上传到现有 R2 存储桶。
+`TEXT_AI_API_URL` 使用 OpenAI 兼容的 `/v1/chat/completions` 接口地址，`TEXT_AI_MODEL` 填写对应模型名。`TEXT_AI_API_KEY` 必须保存为 Cloudflare 加密 Secret。它们只在 Pages Function 服务端使用，不会进入浏览器或 GitHub。更换兼容模型时只需修改这三个配置。
 
 `GITHUB_CONTENT_TOKEN` 不是后台登录令牌，而是 Pages Function 在服务端保存文章所需的 GitHub 凭据。建议创建 fine-grained personal access token，只授权 `Leandro162/wintools` 仓库，并仅开放 **Contents: Read and write**。把它添加为 Cloudflare 的加密 Secret，不要放进普通前端变量、源代码或 GitHub 仓库。
 

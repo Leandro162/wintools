@@ -1,5 +1,7 @@
 # AI Cover And Publishing Implementation Plan
 
+> Superseded note (2026-06-13): Direct Workers AI image generation was replaced by the external OpenAI-compatible text-provider prompt workflow in `docs/superpowers/plans/2026-06-13-external-cover-prompt-provider.md`. Manual image upload, WebP compression, R2 storage, and GitHub publishing remain active.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the current paste editor into an authenticated article workflow with real cover images, manual R2 upload, Cloudflare AI generation, GitHub draft storage, and publishing.

@@ -6,237 +6,316 @@ import ToolCard from '../components/ToolCard.astro';
 const allTools = await getCollection('tools', ({ data }) => !data.draft);
 allTools.sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 
-const featured = allTools.find(t => t.data.featured) ?? allTools[0];
-const rest = allTools.filter(t => t.id !== featured.id);
-
+const featured = allTools.find(tool => tool.data.featured) ?? allTools[0];
 const categories = ['文件处理', '系统优化', '效率工具', '网络工具', '其他'];
-const categoryCounts = categories.map(cat => ({
-  name: cat,
-  count: allTools.filter(t => t.data.category === cat).length,
+const categoryCounts = categories.map(name => ({
+  name,
+  count: allTools.filter(tool => tool.data.category === name).length,
 }));
+const covers: Record<string, string> = {
+  'file-renamer': '/images/home-file-renamer.webp',
+  'clipboard-manager': '/images/home-clipboard.webp',
+};
+const problemLinks = [
+  { label: '文件太乱', detail: '批量整理与重命名', icon: 'lucide:folder-cog', category: '文件处理' },
+  { label: '电脑变慢', detail: '清理与系统优化', icon: 'lucide:gauge', category: '系统优化' },
+  { label: '操作重复', detail: '减少机械操作', icon: 'lucide:repeat-2', category: '效率工具' },
+  { label: '网络排查', detail: '快速定位问题', icon: 'lucide:globe-2', category: '网络工具' },
+  { label: '日常效率', detail: '把小事做得更快', icon: 'lucide:sparkles', category: '效率工具' },
+];
 ---
 
 <BaseLayout
-  title="WinTools — 原创 Windows 实用小工具免费下载"
-  description={`原创 Windows 实用小工具，共 ${allTools.length} 款，免费分享，附图文教程，开箱即用。`}
+  title="WinTools — 好用、易懂的 Windows 小工具"
+  description={`WinTools 提供 ${allTools.length} 款原创 Windows 实用工具和完整图文教程，免费分享，下载即用。`}
+  ogImage="/images/home-hero.webp"
 >
-
-  <!-- HERO -->
   <section class="hero">
-    <div class="container">
-      <div class="hero-badge">
-        <span class="badge-dot"></span> 持续更新中
+    <div class="container hero-grid">
+      <div class="hero-copy fade-in">
+        <span class="eyebrow"><iconify-icon icon="lucide:sparkles"></iconify-icon> 小工具，也能解决大麻烦</span>
+        <h1>让 Windows<br /><strong>更顺手一点</strong></h1>
+        <p>从批量整理文件到找回复制过的内容，每款工具都解决一个具体问题，并配有看得懂的使用教程。</p>
+        <div class="hero-actions">
+          <a class="primary-action" href="#tools">浏览全部工具 <iconify-icon icon="lucide:arrow-right"></iconify-icon></a>
+          <a class="secondary-action" href="#tutorials"><iconify-icon icon="lucide:book-open"></iconify-icon> 查看使用教程</a>
+        </div>
+        <ul class="trust-list" aria-label="工具特点">
+          <li><iconify-icon icon="lucide:shield-check"></iconify-icon> 无广告捆绑</li>
+          <li><iconify-icon icon="lucide:badge-dollar-sign"></iconify-icon> 当前免费分享</li>
+          <li><iconify-icon icon="lucide:book-check"></iconify-icon> 附完整教程</li>
+        </ul>
       </div>
-      <h1 class="hero-title">
-        原创 Windows 小工具<br />
-        <em>解决每天的电脑小麻烦</em>
-      </h1>
-      <p class="hero-desc">
-        每款工具都是为了解决真实遇到的问题而做，免费分享，附图文使用教程，下载即用。
-      </p>
-      <div class="hero-stats">
-        <div class="stat">
-          <span class="stat-num">{allTools.length}</span>
-          <span class="stat-label">款工具</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat-num">持续</span>
-          <span class="stat-label">免费更新</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat-num">0</span>
-          <span class="stat-label">广告捆绑</span>
+      <div class="hero-media fade-in-2">
+        <img src="/images/home-hero.webp" alt="WinTools 文件重命名、剪贴板历史和程序管理工具界面" width="1400" height="788" />
+        <div class="hero-note">
+          <span><iconify-icon icon="lucide:check"></iconify-icon></span>
+          <div><strong>解决真实问题</strong><small>工具界面与教程同步展示</small></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- FILTER TABS -->
-  <div class="filter-wrap">
+  <section class="problem-band" aria-labelledby="problem-title">
     <div class="container">
-      <div class="filter-bar" id="filterBar">
-        <button class="filter-tag active" data-cat="all">
-          全部 <span class="cnt">{allTools.length}</span>
-        </button>
-        {categoryCounts.filter(c => c.count > 0).map(c => (
-          <button class="filter-tag" data-cat={c.name}>
-            {c.name} <span class="cnt">{c.count}</span>
+      <div class="band-heading">
+        <p>从问题出发</p>
+        <h2 id="problem-title">你现在想解决什么？</h2>
+      </div>
+      <div class="problem-list">
+        {problemLinks.map(item => (
+          <button class="problem-item" type="button" data-problem-cat={item.category}>
+            <span class="problem-icon"><iconify-icon icon={item.icon}></iconify-icon></span>
+            <span><strong>{item.label}</strong><small>{item.detail}</small></span>
+            <iconify-icon class="problem-arrow" icon="lucide:chevron-right"></iconify-icon>
           </button>
         ))}
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- TOOLS GRID -->
-  <section class="tools-section">
+  <section class="tutorial-section" id="tutorials">
     <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">
-          全部工具 <span id="gridCount">{allTools.length} 款</span>
-        </h2>
+      <div class="section-heading">
+        <div><span class="section-kicker">从这里开始</span><h2>跟着教程，三分钟用起来</h2></div>
+        <a href={`/tools/${featured.id}`}>阅读完整教程 <iconify-icon icon="lucide:arrow-right"></iconify-icon></a>
       </div>
+      <div class="tutorial-layout">
+        <a class="featured-tutorial" href={`/tools/${featured.id}`}>
+          <div class="tutorial-image">
+            <img src={covers[featured.id] ?? '/images/home-file-renamer.webp'} alt={`${featured.data.title}使用教程`} loading="lazy" />
+          </div>
+          <div class="tutorial-copy">
+            <span class="tutorial-label"><iconify-icon icon="lucide:book-open-check"></iconify-icon> 本周推荐教程</span>
+            <h3>{featured.data.title}</h3>
+            <p>{featured.data.description}</p>
+            <ol>
+              <li><span>1</span>添加需要处理的文件</li>
+              <li><span>2</span>设置规则并预览结果</li>
+              <li><span>3</span>确认无误后一键完成</li>
+            </ol>
+          </div>
+        </a>
+        <aside class="latest-panel" aria-label="最新工具">
+          <div class="panel-title"><span>最新工具</span><small>{allTools.length} 款持续更新</small></div>
+          {allTools.slice(0, 4).map((tool, index) => (
+            <a class="latest-item" href={`/tools/${tool.id}`}>
+              <span class:list={['latest-icon', `tone-${index + 1}`]}>
+                <iconify-icon icon={tool.data.category === '文件处理' ? 'lucide:files' : 'lucide:clipboard-list'}></iconify-icon>
+              </span>
+              <span><strong>{tool.data.title}</strong><small>{tool.data.category} · 附图文教程</small></span>
+              <iconify-icon icon="lucide:arrow-up-right"></iconify-icon>
+            </a>
+          ))}
+          <a class="latest-all" href="#tools">查看全部工具</a>
+        </aside>
+      </div>
+    </div>
+  </section>
 
+  <section class="tools-section" id="tools">
+    <div class="container">
+      <div class="section-heading tools-heading">
+        <div><span class="section-kicker">实用工具箱</span><h2>找到适合你的工具</h2></div>
+        <div class="filter-bar" id="filterBar">
+          <button class="filter-tag active" data-cat="all">全部 <span>{allTools.length}</span></button>
+          {categoryCounts.filter(item => item.count > 0).map(item => (
+            <button class="filter-tag" data-cat={item.name}>{item.name} <span>{item.count}</span></button>
+          ))}
+        </div>
+      </div>
       <div class="tools-grid" id="toolsGrid">
-        <!-- Featured card -->
-        <ToolCard
-          slug={featured.id}
-          title={featured.data.title}
-          description={featured.data.description}
-          category={featured.data.category}
-          cover={featured.data.cover}
-          coverEmoji={featured.data.coverEmoji}
-          publishDate={featured.data.publishDate}
-          featured={true}
-          class="fade-in-1"
-        />
-        <!-- Rest of cards -->
-        {rest.map((tool, i) => (
+        {allTools.map((tool, index) => (
           <ToolCard
             slug={tool.id}
             title={tool.data.title}
             description={tool.data.description}
             category={tool.data.category}
-            cover={tool.data.cover}
+            cover={covers[tool.id] ?? tool.data.cover}
             coverEmoji={tool.data.coverEmoji}
             publishDate={tool.data.publishDate}
-            class={`fade-in-${Math.min(i + 2, 6)}`}
+            class={`fade-in-${Math.min(index + 1, 6)}`}
           />
         ))}
       </div>
-
-      <!-- Empty state -->
       <div class="empty-state" id="emptyState" hidden>
-        <div class="empty-icon">🔍</div>
-        <p>该分类暂无工具，敬请期待</p>
+        <iconify-icon icon="lucide:search-x"></iconify-icon>
+        <p>该分类的工具还在制作中</p>
       </div>
     </div>
   </section>
 
+  <section class="faq-section">
+    <div class="container faq-layout">
+      <div class="faq-intro">
+        <span class="section-kicker">常见问题</span>
+        <h2>下载前，你可能还想知道</h2>
+        <p>工具、教程和更新说明都放在一起，尽量让每一步都清楚。</p>
+        <a href="/about">了解 WinTools <iconify-icon icon="lucide:arrow-right"></iconify-icon></a>
+      </div>
+      <div class="faq-list">
+        <details open>
+          <summary>这些工具安全吗？<iconify-icon icon="lucide:plus"></iconify-icon></summary>
+          <p>WinTools 分享的工具以解决具体问题为目标，不附带广告和无关捆绑。下载前也会把用途与操作步骤写清楚。</p>
+        </details>
+        <details>
+          <summary>不会使用怎么办？<iconify-icon icon="lucide:plus"></iconify-icon></summary>
+          <p>每款工具都有对应的图文教程，从下载、设置到实际操作都会逐步说明。</p>
+        </details>
+        <details>
+          <summary>工具需要付费吗？<iconify-icon icon="lucide:plus"></iconify-icon></summary>
+          <p>目前站内工具均为免费分享，后续如有变化会在下载页面明确说明。</p>
+        </details>
+        <details>
+          <summary>支持哪些 Windows 版本？<iconify-icon icon="lucide:plus"></iconify-icon></summary>
+          <p>主要面向 Windows 10 和 Windows 11。具体兼容信息以每款工具的详情页为准。</p>
+        </details>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  /* HERO */
-  .hero {
-    background: linear-gradient(160deg, #F0F6FF 0%, #ffffff 65%);
-    border-bottom: 1px solid var(--border);
-    padding: 56px 0 48px;
-    text-align: center;
-  }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--blue-light); border: 1px solid var(--blue-mid);
-    color: var(--blue); font-size: 12px; font-weight: 600;
-    padding: 4px 12px; border-radius: 9999px; margin-bottom: 20px;
-  }
-  .badge-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--blue);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-  .hero-title {
-    font-family: var(--font-display);
-    font-size: clamp(24px, 4vw, 38px);
-    font-weight: 700; line-height: 1.25;
-    letter-spacing: -0.02em;
-    margin-bottom: 14px;
-  }
-  .hero-title em { font-style: normal; color: var(--blue); }
-  .hero-desc {
-    font-size: 16px; color: var(--text2);
-    max-width: 460px; margin: 0 auto 28px; line-height: 1.7;
-  }
-  .hero-stats {
-    display: flex; align-items: center;
-    justify-content: center; gap: 28px;
-  }
-  .stat { text-align: center; }
-  .stat-num {
-    display: block;
-    font-family: var(--font-display);
-    font-size: 22px; font-weight: 700; color: var(--text);
-  }
-  .stat-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
-  .stat-divider { width: 1px; height: 30px; background: var(--border); }
+  .hero { padding: 54px 0 44px; border-bottom: 1px solid var(--border); background: #fbfdfb; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, .88fr) minmax(480px, 1.12fr); align-items: center; gap: 54px; }
+  .eyebrow, .section-kicker { display: inline-flex; align-items: center; gap: 7px; color: var(--green-dark); font-size: 13px; font-weight: 700; }
+  .hero h1 { margin: 16px 0 18px; color: var(--text); font-size: clamp(38px, 5vw, 64px); line-height: 1.12; letter-spacing: 0; }
+  .hero h1 strong { color: var(--green); font-weight: 800; }
+  .hero-copy > p { max-width: 510px; color: var(--text2); font-size: 17px; line-height: 1.8; }
+  .hero-actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+  .primary-action, .secondary-action { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 9px 17px; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none; }
+  .primary-action { background: var(--green); color: #fff; box-shadow: 0 6px 16px rgba(36, 161, 72, .18); }
+  .primary-action:hover { background: var(--green-dark); }
+  .secondary-action { border: 1px solid var(--border-strong); background: #fff; color: var(--text); }
+  .trust-list { display: flex; gap: 18px; margin-top: 25px; padding: 0; list-style: none; color: var(--text2); font-size: 12px; flex-wrap: wrap; }
+  .trust-list li { display: flex; align-items: center; gap: 5px; }
+  .trust-list iconify-icon { color: var(--green); font-size: 16px; }
+  .hero-media { position: relative; min-width: 0; }
+  .hero-media > img { width: 100%; aspect-ratio: 3/2; object-fit: cover; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-md); }
+  .hero-note { position: absolute; left: -24px; bottom: 22px; display: flex; align-items: center; gap: 10px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,.96); box-shadow: var(--shadow-sm); }
+  .hero-note > span { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 50%; background: var(--green-light); color: var(--green); }
+  .hero-note strong, .hero-note small { display: block; }
+  .hero-note strong { font-size: 12px; }
+  .hero-note small { color: var(--text3); font-size: 10px; }
 
-  /* FILTERS */
-  .filter-wrap {
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    position: sticky; top: var(--nav-h); z-index: 50;
-  }
-  .filter-bar {
-    display: flex; gap: 8px; flex-wrap: wrap;
-    padding: 12px 0;
-  }
-  .filter-tag {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 5px 14px; border-radius: 9999px;
-    font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: all 0.15s;
-    border: 1px solid var(--border);
-    background: var(--bg); color: var(--text2);
-    font-family: var(--font-body);
-  }
-  .filter-tag:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
-  .filter-tag.active { background: var(--blue); border-color: var(--blue); color: #fff; }
-  .filter-tag .cnt {
-    font-size: 11px; padding: 0 5px;
-    background: rgba(0,0,0,0.08); border-radius: 9999px;
-  }
-  .filter-tag.active .cnt { background: rgba(255,255,255,0.25); }
+  .problem-band { padding: 28px 0; border-bottom: 1px solid var(--border); background: #fff; }
+  .problem-band > .container { display: grid; grid-template-columns: 190px 1fr; align-items: center; gap: 28px; }
+  .band-heading p { color: var(--green); font-size: 12px; font-weight: 700; }
+  .band-heading h2 { margin-top: 3px; font-size: 18px; line-height: 1.4; }
+  .problem-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .problem-item { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 9px; min-width: 0; padding: 11px; border: 1px solid transparent; border-radius: 8px; background: var(--bg2); color: var(--text); text-align: left; cursor: pointer; }
+  .problem-item:hover { border-color: var(--green-mid); background: var(--green-light); }
+  .problem-icon { display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; border-radius: 7px; background: #fff; color: var(--green); font-size: 18px; }
+  .problem-item strong, .problem-item small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .problem-item strong { font-size: 13px; }
+  .problem-item small { color: var(--text3); font-size: 10px; }
+  .problem-arrow { color: var(--text3); font-size: 14px; }
 
-  /* TOOLS GRID */
-  .tools-section { padding: 28px 0 72px; }
-  .section-header {
-    display: flex; align-items: center;
-    justify-content: space-between; margin-bottom: 20px;
-  }
-  .section-title {
-    font-family: var(--font-display);
-    font-size: 16px; font-weight: 600;
-  }
-  .section-title span { color: var(--text3); font-weight: 400; font-size: 14px; margin-left: 6px; }
-  .tools-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 20px;
-  }
-  .empty-state {
-    text-align: center; padding: 60px 0;
-    color: var(--text3); font-size: 15px;
-  }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .tutorial-section, .tools-section { padding: 72px 0; }
+  .tutorial-section { background: var(--surface-soft); }
+  .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+  .section-heading h2, .faq-intro h2 { margin-top: 5px; font-size: 28px; line-height: 1.35; }
+  .section-heading > a, .faq-intro > a { display: inline-flex; align-items: center; gap: 6px; color: var(--green-dark); font-size: 13px; font-weight: 700; text-decoration: none; }
+  .tutorial-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(290px, .65fr); gap: 22px; }
+  .featured-tutorial { display: grid; grid-template-columns: 1.16fr .84fr; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: inherit; text-decoration: none; }
+  .tutorial-image { min-height: 360px; background: #eef5ee; }
+  .tutorial-image img { width: 100%; height: 100%; object-fit: cover; }
+  .tutorial-copy { padding: 29px; }
+  .tutorial-label { display: inline-flex; align-items: center; gap: 6px; color: var(--green-dark); font-size: 12px; font-weight: 700; }
+  .tutorial-copy h3 { margin: 12px 0 9px; font-size: 22px; line-height: 1.35; }
+  .tutorial-copy > p { color: var(--text2); font-size: 13px; line-height: 1.7; }
+  .tutorial-copy ol { display: grid; gap: 12px; margin-top: 24px; list-style: none; }
+  .tutorial-copy li { display: flex; align-items: center; gap: 10px; color: var(--text2); font-size: 13px; }
+  .tutorial-copy li span { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 50%; background: var(--green-light); color: var(--green-dark); font-size: 11px; font-weight: 700; }
+  .latest-panel { padding: 20px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+  .panel-title { display: flex; align-items: center; justify-content: space-between; padding-bottom: 13px; border-bottom: 1px solid var(--border); }
+  .panel-title span { font-size: 15px; font-weight: 700; }
+  .panel-title small { color: var(--text3); font-size: 10px; }
+  .latest-item { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--border); color: var(--text); text-decoration: none; }
+  .latest-icon { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border-radius: 7px; background: var(--blue-light); color: var(--blue); }
+  .tone-2 { background: var(--orange-light); color: var(--orange); }
+  .latest-item strong, .latest-item small { display: block; }
+  .latest-item strong { font-size: 13px; }
+  .latest-item small { color: var(--text3); font-size: 10px; }
+  .latest-item > iconify-icon { color: var(--text3); }
+  .latest-all { display: block; padding-top: 15px; color: var(--green-dark); font-size: 12px; font-weight: 700; text-align: center; text-decoration: none; }
 
-  @media (max-width: 600px) {
+  .tools-section { background: #fff; }
+  .tools-heading { align-items: center; }
+  .filter-bar { display: flex; justify-content: flex-end; gap: 7px; flex-wrap: wrap; }
+  .filter-tag { display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px; border: 1px solid var(--border); border-radius: 7px; background: #fff; color: var(--text2); font-size: 12px; font-weight: 600; cursor: pointer; }
+  .filter-tag span { color: var(--text3); font-size: 10px; }
+  .filter-tag:hover { border-color: var(--green); color: var(--green-dark); }
+  .filter-tag.active { border-color: var(--green); background: var(--green); color: #fff; }
+  .filter-tag.active span { color: rgba(255,255,255,.78); }
+  .tools-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .empty-state { padding: 50px 0; color: var(--text3); text-align: center; }
+  .empty-state iconify-icon { font-size: 34px; }
+
+  .faq-section { padding: 72px 0; border-top: 1px solid var(--border); background: #f9fbf9; }
+  .faq-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 74px; }
+  .faq-intro > p { max-width: 350px; margin: 14px 0 21px; color: var(--text2); font-size: 14px; }
+  .faq-list { border-top: 1px solid var(--border-strong); }
+  .faq-list details { border-bottom: 1px solid var(--border-strong); }
+  .faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 0; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list details[open] summary iconify-icon { transform: rotate(45deg); }
+  .faq-list summary iconify-icon { color: var(--green); transition: transform .2s; }
+  .faq-list p { max-width: 650px; padding: 0 30px 18px 0; color: var(--text2); font-size: 13px; line-height: 1.75; }
+
+  @media (max-width: 980px) {
+    .hero-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+    .problem-band > .container { grid-template-columns: 1fr; gap: 14px; }
+    .problem-list { grid-template-columns: repeat(3, 1fr); }
+    .tutorial-layout { grid-template-columns: 1fr; }
+    .tools-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .hero { padding: 38px 0 32px; }
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 40px; }
+    .hero-media { order: -1; }
+    .hero-note { left: 12px; bottom: 12px; }
+    .problem-list { display: flex; overflow-x: auto; padding-bottom: 5px; }
+    .problem-item { min-width: 182px; }
+    .featured-tutorial { grid-template-columns: 1fr; }
+    .tutorial-image { min-height: 250px; }
+    .section-heading, .tools-heading { align-items: flex-start; flex-direction: column; }
+    .filter-bar { justify-content: flex-start; }
     .tools-grid { grid-template-columns: 1fr; }
-    .hero-stats { gap: 16px; }
+    .faq-layout { grid-template-columns: 1fr; gap: 32px; }
+  }
+  @media (max-width: 520px) {
+    .hero h1 { font-size: 34px; }
+    .hero-copy > p { font-size: 15px; }
+    .hero-actions > a { width: 100%; }
+    .trust-list { gap: 10px 14px; }
+    .tutorial-section, .tools-section, .faq-section { padding: 52px 0; }
+    .section-heading h2, .faq-intro h2 { font-size: 24px; }
   }
 </style>
 
 <script>
   const tags = document.querySelectorAll<HTMLButtonElement>('.filter-tag');
-  const grid = document.getElementById('toolsGrid');
-  const countEl = document.getElementById('gridCount');
+  const problemButtons = document.querySelectorAll<HTMLButtonElement>('[data-problem-cat]');
+  const cards = document.querySelectorAll<HTMLElement>('#toolsGrid .tool-card');
   const empty = document.getElementById('emptyState');
-  const cards = grid?.querySelectorAll<HTMLAnchorElement>('.tool-card');
 
-  tags.forEach(tag => {
-    tag.addEventListener('click', () => {
-      tags.forEach(t => t.classList.remove('active'));
-      tag.classList.add('active');
-      const cat = tag.dataset.cat;
-      let visible = 0;
-      cards?.forEach(card => {
-        const cardCat = card.querySelector('.card-cat')?.textContent?.trim();
-        const show = cat === 'all' || cardCat === cat;
-        card.style.display = show ? '' : 'none';
-        if (show) visible++;
-      });
-      if (countEl) countEl.textContent = `${visible} 款`;
-      if (empty) empty.hidden = visible > 0;
+  function applyFilter(category: string) {
+    let visible = 0;
+    tags.forEach(tag => tag.classList.toggle('active', tag.dataset.cat === category));
+    cards.forEach(card => {
+      const cardCategory = card.querySelector('.card-cat')?.textContent?.trim();
+      const show = category === 'all' || cardCategory === category;
+      card.style.display = show ? '' : 'none';
+      if (show) visible += 1;
     });
-  });
+    if (empty) empty.hidden = visible > 0;
+  }
+
+  tags.forEach(tag => tag.addEventListener('click', () => applyFilter(tag.dataset.cat ?? 'all')));
+  problemButtons.forEach(button => button.addEventListener('click', () => {
+    applyFilter(button.dataset.problemCat ?? 'all');
+    document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' });
+  }));
 </script>

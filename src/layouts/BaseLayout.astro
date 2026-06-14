@@ -27,13 +27,9 @@ const ogImageUrl = new URL(ogImage, siteUrl).href;
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="generator" content={Astro.generator} />
-
-  <!-- SEO -->
   <title>{title}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
-
-  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
@@ -41,185 +37,94 @@ const ogImageUrl = new URL(ogImage, siteUrl).href;
   <meta property="og:image" content={ogImageUrl} />
   <meta property="og:site_name" content="WinTools" />
   <meta name="twitter:card" content="summary_large_image" />
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Sora:wght@400;600;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <!-- RSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet" />
   <link rel="alternate" type="application/rss+xml" title="WinTools" href="/rss.xml" />
-
-  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
 </head>
 <body>
-
-  <!-- NAV -->
   <nav id="navbar">
     <div class="container nav-inner">
-      <a class="logo" href="/">
-        <div class="logo-icon" aria-hidden="true">🛠</div>
-        WinTools
+      <a class="logo" href="/" aria-label="WinTools 首页">
+        <span class="logo-icon" aria-hidden="true"><iconify-icon icon="lucide:wrench"></iconify-icon></span>
+        <span>WinTools</span>
       </a>
       <div class="nav-links">
         <a href="/" class:list={[{ active: currentPath === '/' }]}>首页</a>
         <a href="/category" class:list={[{ active: currentPath.startsWith('/category') }]}>分类</a>
+        <a href="/#tutorials">教程</a>
         <a href="/about" class:list={[{ active: currentPath === '/about' }]}>关于</a>
       </div>
-      <a class="nav-search" href="/search" aria-label="搜索">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
-        <span>搜索工具…</span>
+      <a class="nav-search" href="/search" aria-label="搜索工具">
+        <iconify-icon icon="lucide:search" aria-hidden="true"></iconify-icon><span>搜索工具...</span>
       </a>
-      <!-- Mobile hamburger -->
-      <button class="hamburger" id="hamburger" aria-label="菜单" aria-expanded="false">
-        <span></span><span></span><span></span>
+      <span class="update-status"><span></span>持续更新中</span>
+      <button class="hamburger" id="hamburger" aria-label="打开菜单" aria-expanded="false">
+        <iconify-icon icon="lucide:menu" aria-hidden="true"></iconify-icon>
       </button>
     </div>
-    <!-- Mobile menu -->
     <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-      <a href="/">首页</a>
-      <a href="/category">分类</a>
-      <a href="/about">关于</a>
-      <a href="/search">搜索</a>
+      <a href="/">首页</a><a href="/category">分类</a><a href="/#tutorials">教程</a><a href="/about">关于</a><a href="/search">搜索</a>
     </div>
   </nav>
 
-  <!-- PAGE CONTENT -->
-  <main>
-    <slot />
-  </main>
+  <main><slot /></main>
 
-  <!-- FOOTER -->
   <footer>
     <div class="container footer-inner">
       <div class="footer-brand">
-        <div class="footer-logo">🛠 WinTools</div>
-        <div class="footer-tagline">原创 Windows 小工具，持续免费更新</div>
+        <div class="footer-logo"><span class="footer-mark"><iconify-icon icon="lucide:wrench"></iconify-icon></span>WinTools</div>
+        <div class="footer-tagline">认真做好每一款 Windows 小工具</div>
       </div>
       <div class="footer-links">
-        <a href="/">首页</a>
-        <a href="/category">分类</a>
-        <a href="/about">关于</a>
-        <a href="/rss.xml">RSS</a>
+        <a href="/">首页</a><a href="/category">分类</a><a href="/#tutorials">教程</a><a href="/about">关于</a><a href="/rss.xml">RSS</a>
       </div>
       <div class="footer-copy">© {new Date().getFullYear()} WinTools · 免费分享，禁止倒卖</div>
     </div>
   </footer>
-
 </body>
 </html>
 
 <style>
-  /* NAV */
-  #navbar {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    height: var(--nav-h);
-  }
-  .nav-inner {
-    display: flex; align-items: center;
-    height: var(--nav-h); gap: 0;
-  }
-  .logo {
-    display: flex; align-items: center; gap: 8px;
-    text-decoration: none;
-    font-family: var(--font-display);
-    font-weight: 700; font-size: 17px; color: var(--text);
-    margin-right: auto;
-  }
-  .logo-icon {
-    width: 30px; height: 30px;
-    background: linear-gradient(135deg, #2563EB, #60A5FA);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px;
-  }
+  #navbar { position: sticky; top: 0; z-index: 100; height: var(--nav-h); border-bottom: 1px solid var(--border); background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
+  .nav-inner { display: flex; height: var(--nav-h); align-items: center; }
+  .logo { display: flex; align-items: center; gap: 9px; margin-right: auto; color: var(--text); font-family: var(--font-display); font-size: 18px; font-weight: 700; text-decoration: none; }
+  .logo-icon, .footer-mark { display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 8px; background: var(--green); color: #fff; font-size: 18px; }
   .nav-links { display: flex; align-items: center; gap: 2px; }
-  .nav-links a {
-    text-decoration: none; color: var(--text2);
-    font-size: 14px; font-weight: 500;
-    padding: 6px 14px; border-radius: 8px;
-    transition: background 0.15s, color 0.15s;
-  }
-  .nav-links a:hover { background: var(--bg2); color: var(--text); }
-  .nav-links a.active { color: var(--blue); background: var(--blue-light); }
-  .nav-search {
-    margin-left: 12px;
-    display: flex; align-items: center; gap: 8px;
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 6px 12px;
-    cursor: pointer; transition: border-color 0.15s;
-    min-width: 160px; text-decoration: none;
-    color: var(--text3); font-size: 13px;
-  }
-  .nav-search:hover { border-color: #CBD5E1; }
-  /* Hamburger */
-  .hamburger {
-    display: none; flex-direction: column; justify-content: center;
-    gap: 5px; background: none; border: none; cursor: pointer;
-    padding: 6px; margin-left: 12px;
-  }
-  .hamburger span {
-    display: block; width: 20px; height: 2px;
-    background: var(--text2); border-radius: 2px;
-    transition: all 0.2s;
-  }
-  .mobile-menu {
-    display: none; flex-direction: column;
-    background: var(--bg); border-top: 1px solid var(--border);
-    padding: 8px 16px 16px;
-  }
-  .mobile-menu a {
-    padding: 12px 8px; font-size: 15px; font-weight: 500;
-    color: var(--text); text-decoration: none;
-    border-bottom: 1px solid var(--border);
-  }
-  .mobile-menu a:last-child { border-bottom: none; }
-  @media (max-width: 680px) {
-    .nav-links, .nav-search { display: none; }
-    .hamburger { display: flex; }
+  .nav-links a { padding: 7px 13px; border-radius: 7px; color: var(--text2); font-size: 14px; font-weight: 600; text-decoration: none; }
+  .nav-links a:hover, .nav-links a.active { background: var(--green-light); color: var(--green-dark); }
+  .nav-search { display: flex; min-width: 156px; align-items: center; gap: 7px; margin-left: 12px; padding: 7px 11px; border: 1px solid var(--border-strong); border-radius: 8px; background: #fff; color: var(--text3); font-size: 13px; text-decoration: none; }
+  .nav-search:hover { border-color: var(--green); }
+  .update-status { display: inline-flex; align-items: center; gap: 6px; margin-left: 14px; color: var(--text3); font-size: 12px; }
+  .update-status > span { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .hamburger { display: none; align-items: center; justify-content: center; margin-left: 12px; padding: 7px; border: 0; background: transparent; color: var(--text); font-size: 23px; cursor: pointer; }
+  .mobile-menu { display: none; flex-direction: column; padding: 8px 24px 16px; border-top: 1px solid var(--border); background: #fff; }
+  .mobile-menu a { padding: 11px 4px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 15px; font-weight: 500; text-decoration: none; }
+  .mobile-menu a:last-child { border-bottom: 0; }
+  footer { margin-top: auto; padding: 34px 24px; border-top: 1px solid var(--border); background: var(--surface-soft); }
+  .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+  .footer-logo { display: flex; align-items: center; gap: 8px; color: var(--text); font-family: var(--font-display); font-weight: 700; }
+  .footer-mark { width: 27px; height: 27px; font-size: 15px; }
+  .footer-tagline, .footer-copy { margin-top: 4px; color: var(--text3); font-size: 12px; }
+  .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+  .footer-links a { color: var(--text2); font-size: 13px; text-decoration: none; }
+  .footer-links a:hover { color: var(--green-dark); }
+  @media (max-width: 850px) { .update-status { display: none; } }
+  @media (max-width: 700px) {
     #navbar { height: auto; }
     .nav-inner { height: var(--nav-h); }
+    .nav-links, .nav-search { display: none; }
+    .hamburger { display: inline-flex; }
     .mobile-menu.open { display: flex; }
   }
-
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    background: var(--bg2);
-    padding: 32px 24px;
-    margin-top: auto;
-  }
-  .footer-inner {
-    display: flex; align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap; gap: 16px;
-  }
-  .footer-logo { font-size: 15px; font-weight: 700; color: var(--text); }
-  .footer-tagline { font-size: 12px; color: var(--text3); margin-top: 3px; }
-  .footer-links { display: flex; gap: 20px; }
-  .footer-links a {
-    font-size: 13px; color: var(--text3);
-    text-decoration: none; transition: color 0.15s;
-  }
-  .footer-links a:hover { color: var(--blue); }
-  .footer-copy { font-size: 12px; color: var(--text3); }
 </style>
 
 <script>
-  // Mobile menu toggle
   const btn = document.getElementById('hamburger');
   const menu = document.getElementById('mobileMenu');
   btn?.addEventListener('click', () => {
-    const open = menu?.classList.toggle('open');
+    const open = menu?.classList.toggle('open') ?? false;
     btn.setAttribute('aria-expanded', String(open));
     menu?.setAttribute('aria-hidden', String(!open));
   });
